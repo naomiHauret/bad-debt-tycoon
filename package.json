@@ -1,0 +1,6 @@
+{
+  "name": "crippling-debt-tycoon",
+  "private": true,
+  "author": "Naomi Hauret",
+  "workspaces": ["distributions/*", "apps/*", "engine/*", "packages/*", "tooling/*"],
+}
