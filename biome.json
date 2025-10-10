@@ -1,0 +1,122 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "ignoreUnknown": false
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "nursery": {
+        "useSortedClasses": {
+          "level": "off",
+          "fix": "safe",
+          "options": {}
+        }
+      },
+      "recommended": true,
+      "style": {
+        "noDefaultExport": "error",
+        "useExportType": "error",
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "const",
+                  "scope": "any"
+                },
+                "formats": ["CONSTANT_CASE"]
+              },
+              {
+                "selector": {
+                  "kind": "let",
+                  "scope": "any"
+                },
+                "formats": ["camelCase"]
+              },
+              {
+                "selector": {
+                  "kind": "function",
+                  "scope": "any"
+                },
+                "formats": ["camelCase"]
+              },
+              {
+                "selector": {
+                  "kind": "functionParameter",
+                  "scope": "any"
+                },
+                "formats": ["camelCase"]
+              },
+              {
+                "selector": {
+                  "kind": "objectLiteralProperty",
+                  "scope": "any"
+                },
+                "formats": ["camelCase"]
+              },
+              {
+                "selector": {
+                  "kind": "class",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "typeAlias",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "enum",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "interface",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase"]
+              }
+            ]
+          }
+        },
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "filenameCases": ["kebab-case", "export"]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "asNeeded"
+    }
+  },
+  "css": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  }
+}
