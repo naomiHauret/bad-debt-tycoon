@@ -138,6 +138,55 @@ Examples:
 - **Hoarder:** Exit with Y+ coins
 - **Minimalist:** Exit with exactly 3 lives
 
+## Exit methods
+
+### Method 1: Successful exit (winner)
+
+Requirements:
+
+- Equal or above amount of required lives
+- 0 cards remaining
+- Coins equal or above the exit cost
+- Debt = 0
+
+Result: Marked as winner, eligible for prize share
+
+### Method 2: Early successful exit
+
+Same requirements as regular exit, however, the player can exit early as a winner with 0 penalty if their secret objective is completed.
+
+Result: Marked as winner, eligible for prize share
+
+### Method 3: Forfeit
+
+Requirements:
+
+- Tournament must allow forfeit (params.forfeitAllowed)
+- Cannot have already exited successfully
+
+Process:
+
+1. Calculate penalty based on time remaining
+2. Penalty = MAX _×_ (timeRemaining / duration), but >= MIN
+3. Penalty goes to prize pool
+4. Receive: stake - penalty
+5. Marked as eliminated (not a winner)
+
+Example:
+
+- Stake: 100 PYUSD
+- Max penalty: 80%, Min penalty: 10%
+- Forfeit at 50% time remaining
+- Penalty: 40 PYUSD (80% × 50%)
+- Receive: 60 PYUSD back
+
+### Method 4: Fail to exit (Loser)
+
+- Tournament ends
+- Did not exit successfully
+- Did not forfeit
+- Receive: 0 (full stake goes to prize pool)
+
 ## Features grouping & breakdown
 
 - **Tournament management**: Design, lifecycle, player entry/exit, prizes & reinbursments
