@@ -12,26 +12,37 @@
      - duration
      - minimum/maximum players
      - stake (minimum, maximum, coin)
-       - on the coin: only 1 coin is accepted per tournament.
+       - on the coin: only 1 coin is accepted per tournament (from whitelist: PYUSD, USDC, GHO)
      - decay rate
-     - start conditions :
-       - player count
-       - pool prize
-       - date/time
+     - start conditions (ALL enabled conditions must be met):
+       - player count threshold
+       - pool prize threshold
+       - date/time threshold
      - player resources :
-       - amount of lives
-       - deck size
+       - amount of lives (eg 5 lives)
+       - deck size per type (eg a deck of 10 means 10 rock, 10 paper, 10 scissors)
+       - coin conversion rate (eg, 1 PYUSD staked = 100 in-game coins)
      - common exit conditions
      - available cards in the shared deck
+     - creator fee (0-5%)
+
+   **Fees:**
+
+   - Platform fee: Set globally by platform admin (0.5-5%), applies to tournaments created after fee - change
+   - Creator fee: Configurable per tournament (0-5%)
+   - Total max: 10% combined
 
 1. **Setup (pre joining game)**
 
-   - Players join by staking a stablecoin (PYUSD/USDC/GHO)
+   - Players join by staking a whitelisted stablecoin (PYUSD/USDC/GHO)
 
    **Setup (when game)**
 
-   - Each player is randomly assigned a secret objective
-   - Each player receives their resources (deck, lives, in-game currency equivalent to their stake)
+   - Each player is randomly assigned a secret objective <mark>(@todo: implement in future phase)</mark>
+   - Each player receives their resources
+   - Lives: As configured by tournament (eg 5 lives)
+   - Cards: As configured by tournament (eg 10 rock, 10 paper, 10 scissors)
+   - Coins: stake amount \* conversion rate (eg 100 PYUSD \* 1 = 100 coins)
 
 2. **Active phase**
    Players cycle through these actions until tournament ends :
@@ -46,9 +57,9 @@
 
    **B. Manage resources**
 
-   - **Lives:** Gain from wins, lose from losses ; eg: need 3+ to exit
-   - **Coins:** Start with stake amount, decay rate applies, needed for exit
-   - **Cards:** Start with the same amount of each (eg: 4 rock/ 4 paper/ 4 scissors), must have 0 in hand to exit
+   - **Lives:** Gain from wins, lose from losses ; need minimum amount to exit (configured per tournament, eg need >=3 lives to exit)
+   - **Coins:** Start with stake \* rate, decay applies, needed for exit
+   - **Cards:** Start with configured amount per type (eg: 4 rock/ 4 paper/ 4 scissors), must have 0 of each type in hand to exit
    - **Debt:** Take loans (life <> in-game currency), must repay before exit
 
    **C. Economic actions**
@@ -80,7 +91,8 @@
    - 0 cards remaining
    - Coins >= exit cost (compounds hourly)
    - Debt = 0 (all loans repaid)
-     They can also exit earlier if their secret objective is completed.
+
+@todo: They can also exit earlier if their secret objective is completed.
 
 4. **Tournament end**
 
@@ -90,8 +102,7 @@
 
 5. **Prize distribution**
 
-   - Platform fee deducted (eg: 1%)
-   - Creator fee deducted (eg: 0.25%)
+   - Platform fee (eg: 1% ) and creator fee (eg: 3%) are deducted
    - Remaining pool split among winners
    - Winners manually claim their share
 
@@ -103,9 +114,9 @@
 
 #### Resources
 
-- **Lives:** Win condition, gained from fights, lost from losses
-- **Coins (in-game currency):** Economy unit, decay over time, needed for exit, loans, and purchases
-- **Cards:** Consumable ammo for fights ; can be traded and loaned ; must have 0 in hand to exit
+- **Lives:** Win condition, gained from fights, lost from losses. Initial amount configured per tournament.
+- **Coins (in-game currency):** Economy unit, derived from stake \* conversion rate, decay over time, needed for exit, loans, and purchases
+- **Cards:** Consumable ammo for fights, the initial deck size is configured per tournament (eg 10 of each, there can't be more/less of one type) ; can be traded and loaned ; must have 0 in hand to exit
 - **Debt:** Liability from loans, blocks exit until repaid
 
 #### Time pressure
@@ -149,13 +160,13 @@ Requirements:
 - Coins equal or above the exit cost
 - Debt = 0
 
-Result: Marked as winner, eligible for prize share
+Result: Marked as winner, eligible for prize share.
 
 ### Method 2: Early successful exit
 
 Same requirements as regular exit, however, the player can exit early as a winner with 0 penalty if their secret objective is completed.
 
-Result: Marked as winner, eligible for prize share
+Result: Marked as winner, eligible for prize share.
 
 ### Method 3: Forfeit
 
@@ -167,7 +178,7 @@ Requirements:
 Process:
 
 1. Calculate penalty based on time remaining
-2. Penalty = MAX _×_ (timeRemaining / duration), but >= MIN
+2. Penalty = MAX \* (timeRemaining / duration), but >= MIN
 3. Penalty goes to prize pool
 4. Receive: stake - penalty
 5. Marked as eliminated (not a winner)
@@ -177,7 +188,7 @@ Example:
 - Stake: 100 PYUSD
 - Max penalty: 80%, Min penalty: 10%
 - Forfeit at 50% time remaining
-- Penalty: 40 PYUSD (80% × 50%)
+- Penalty: 40 PYUSD (80% \* 50%)
 - Receive: 60 PYUSD back
 
 ### Method 4: Fail to exit (Loser)
@@ -219,12 +230,27 @@ Example:
 
 - **Duration:** Minimum 20 minutes, no maximum (configurable)
 - **Stakes:** Min/max bounds (optional), supports variance between players
-- **Start conditions:** At least one of: player count, pool amount, or timestamp
-- **Prize claiming:** Manual (not automatic) `
+- **Start conditions:** **ALL enabled conditions must be met:**
+  - Player count threshold
+  - Pool amount threshold
+  - Timestamp (start/end)
+  - At least ONE condition must be enabled
+- **Prize claiming:** Manual (not automatic -> later improvement)
 - **Cancellation:** If start conditions not met after start time, players can refund
-- **Fees:** Platform (O.5-5%) + Creator (0-5%), total max 10%
-- **Whitelisted stablecoins only:** PYUSD, USDC, GHO (no volatility risk aka stake $10, max loss = $10)
-- **Tournament creator chooses:** Single token per tournament
+- **Fees:**
+  - Platform fee: 0.5-5% (set globally) ; if the platform fee changes WHILE a tournament is ongoing, its platform fee value won't change (only tournaments created AFTER the platform fee update will have this value)
+  - Creator fee: 0-5% (per tournament)
+  - Total max: 10%
+- **Whitelisted stablecoins only:** Whitelisted stablecoins only: PYUSD, USDC, GHO (no volatility risk, limited depeg risk, easy access to on/offramp and liquidity)
+- **Tournament creator chooses**: Single token per tournament from the whitelist
+
+### Tokens whitelist
+
+For now, only whitelisted stablecoins will be supported as potential stakes :
+
+- PYUSD
+- USDC
+- GHO
 
 ### Randomness (w/ Pyth Entropy)
 
