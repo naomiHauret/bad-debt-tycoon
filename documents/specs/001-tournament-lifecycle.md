@@ -25,6 +25,9 @@ I want to be able to define these as the immutable, verifiable rules of a tourna
   - In-game currency amount
   - Lives amounts
 - Exit penalty
+- (nice to have) forfeit penalty calculation formula
+  - Time-based linear (Early forfeit = lose more)
+  - Fixed penalty
 - (nice to have) which cards will be available in the mystery deck
 - (nice to have) decay variance law (eg: uniform, exponential...)
 
@@ -52,6 +55,21 @@ THEN a new `Tournament` contract is deployed
   AND the creator is set as tournament owner
   AND all parameters are stored immutably
   AND a `TournamentCreated` event is emitted
+```
+
+**As a tournament creator**,  
+I want to **configure forfeit penalties**,  
+So that **I can discourage griefing while allowing graceful exits**.
+
+```
+GIVEN a tournament creator is setting parameters
+WHEN defining forfeit rules
+THEN they can choose:
+
+forfeitAllowed (bool): Enable/disable forfeit
+forfeitPenaltyType (enum): Fixed, TimeBased, Custom
+forfeitMaxPenalty (uint8): Maximum penalty % (0-100)
+forfeitMinPenalty (uint8): Minimum penalty % (0-100)
 ```
 
 ### Discovery
@@ -113,6 +131,37 @@ GIVEN a tournament is in "Open" status
 THEN tournament status changes to "Cancelled"
   AND all players can claim their stakes back
   AND TournamentCancelled event is emitted
+```
+
+### Forfeit
+
+**As a player**,  
+I want to **forfeit the tournament and recover part of my stake**,  
+So that **I can cut my losses if I know I can't win**.
+
+```
+GIVEN a tournament is active
+AND I am an active player
+AND forfeit is allowed (params.forfeitAllowed = true)
+WHEN I call forfeitTournament()
+THEN my penalty is calculated based on time remaining
+AND penalty amount is added to prize pool
+AND remaining stake is claimable by me
+AND I am marked as forfeited (eliminated)
+AND `PlayerForfeited` event is emitted
+```
+
+```
+GIVEN tournament does not allow forfeit
+AND I call forfeitTournament()
+THEN transaction reverts with "Forfeit not allowed"
+```
+
+```
+GIVEN I forfeit
+AND I have active trades/loans
+THEN trades are cancelled
+AND loans remain as debt (penalty calculated on original stake)
 ```
 
 ### Prize distribution
