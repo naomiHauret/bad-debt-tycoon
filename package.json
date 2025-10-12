@@ -1,11 +1,11 @@
 {
-  "name": "crippling-debt-tycoon",
+  "name": "bad-debt-tycoon",
   "private": true,
   "author": "Naomi Hauret",
   "scripts": {
     "check": "biome check --write",
-    "build:engine": "cd packages/engine && bun run build",
-    "build:game": "cd packages/game && bun run build",
+    "build:contracts": "cd packages/contracts && bun run build",
+    "build": "bun --filter '*' build",
     "dev": "bun --filter '*' dev"
   },
   "workspaces": [
