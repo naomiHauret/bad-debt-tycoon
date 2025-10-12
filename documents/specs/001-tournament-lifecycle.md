@@ -355,13 +355,128 @@ THEN `stakeToken.transfer(msg.sender, myStakeAmount)` succeeds
 
 ## Technical breakdown
 
-The Tournament Management feature is a permissionless system that allows creators to **define, deploy, and manage game instances with customizable rules**.
-Each tournament is an **isolated game with its own parameters, prize pool, and player set**.
-Tournaments can run concurrently.
+Tournament management is built on a permissionless system where game designers can create Bad Debt Tycoon games with customizable rules.
+
+The platform maintains **two gatekeepers**: administrators define and manage which stablecoins can be used as entry fees, and authorize which entities can create valid tournaments. All tournaments are tracked in a central registry that monitors their current state.
+
+Each tournament operates as an **isolated game** with fixed rules set at creation—player limits, entry amounts, duration, starting resources, and win conditions. Players enter by depositing an approved stablecoin. Tournaments automatically progress through their lifecycle: `Open` (accepting players) -> `Active` (game in progress) -> `Ended` (complete), or `Open` → `Cancelled` (if start requirements weren't met).
+
+The system enforces all **financial rules**: collecting entry fees, reinbursments tracking (in case of cancellation), calculating prizes and tracking exit eligibilit.
+
+When a tournament concludes, winners withdraw their prize share, the platform collect its fee, and game designers can claim their fee.
 
 ### System requirements
 
-- `TournamentFactory.sol`: Deploys new tournament contracts
-- `Tournament.sol`: Main game contract with configurable rules
-- `TournamentRegistry.sol`: Tracks all active/completed tournaments
-- `TournamentParameters.sol`: Immutable configuration struct
+#### `TournamentTokenWhitelist.sol`
+
+- **Goal**: Maintains approved stablecoin addresses for tournament stakes
+- **Who uses it**: Platform admin (deployer/owner)
+- **How it's used**: Admin adds/removes ERC20 token addresses from whitelist
+- **Events**: `TokenWhitelisted`, `TokenRemovedFromWhitelist`
+
+#### `TournamentRegistry.sol`
+
+- **Goal**: Central registry that:
+  - Grants/revokes right to contracts to be a sanctioned Tournament factory (= a contract that can create Tournament contracts)
+  - Tracks all tournaments contracts and their statuses
+- **Who uses it**:
+  - Platform admin (grants/revokes factory role)
+  - Authorized factories (register new tournaments)
+  - Tournament contracts (update their own status)
+  - Anyone (query tournaments)
+- **How it's used**:
+  - Admin whitelists authorized factory contracts
+  - Only whitelisted factories can register tournaments when created (initial status: `Open`)
+  - Tournaments update their own status as game progresses
+  - Anyone can query tournaments by status
+- **Events**: `FactoryRoleGranted`, `FactoryRoleRevoked`, `TournamentRegistered`, `TournamentStatusUpdated`
+- **Statuses**: `Open` ; `Active` ; `Ended` ; `Cancelled`
+
+#### `TournamentFactory.sol`
+
+- **Goal**: Deploys tournament instances and manages platform-wide settings
+- **Who uses it**:
+  - Platform admin (updates platform fee, collects fees)
+  - Game creators (create tournaments with custom parameters)
+- **How it's used**:
+  - Game designer creates tournament with ruleset parameters
+  - Factory validates parameters against whitelist and rules
+  - Deploys minimal proxy pointing to `Tournament` implementation
+  - Registers new tournament in `TournamentRegistry`
+  - Locks current platform fee for that tournament
+- **Events**: `TournamentCreated`, `PlatformFeeUpdated`, `PlatformFeesCollected`
+
+#### `Tournament.sol`
+
+- **Who uses it**:
+  - Players (join, exit, forfeit, claim prizes)
+  - Tournament creator (collect creator fees)
+  - System (automatic status transitions)
+- **How it's used**:
+  - Players join by staking whitelisted tokens
+  - Tournament auto-starts when ALL enabled start conditions are met
+  - In case tournament is cancelled, players can claim back their funds
+  - Players manage their economic state (lives, coins, cards, debt)
+  - Winners exit when meeting all exit conditions
+  - After tournament ends, winners claim prizes, creator claims fees
+- **State**: Immutable parameters (set at creation) + mutable state (players, resources, status)
+- **Events**: `PlayerJoined`, `TournamentStarted`, `PlayerExited`, `PlayerForfeited`, `TournamentEnded`, `TournamentCancelled`, `PrizeClaimed`, `CreatorFeesCollected`
+
+```mermaid
+flowchart TB
+ subgraph subGraph0["Access control layer"]
+        Admin["Admin"]
+  end
+ subgraph subGraph1["Core tournament management system contracts"]
+        Whitelist["TournamentTokenWhitelist"]
+        Registry["TournamentRegistry"]
+        Factory["TournamentFactory"]
+        TournImpl["Tournament implementation"]
+  end
+ subgraph subGraph2["Tournament instances"]
+        T1["Tournament 1 proxy"]
+        T2["Tournament 2 proxy"]
+        T3["Tournament 3 proxy"]
+  end
+ subgraph Users["Users"]
+        PlatfromRunner["Platform runner/deployer address"]
+        Creator["Game creator"]
+        P1["Player 1"]
+        P2["Player 2"]
+  end
+ subgraph subGraph4["External contracts (ERC20)"]
+        USDC["USDC Token"]
+        PYUSD["PYUSD Token"]
+  end
+    Admin -- addToken/removeToken --> Whitelist
+    Admin -- grantFactoryRole --> Registry
+    Admin -- setPlatformFee --> Factory
+    Factory -. verifies token validity .-> Whitelist
+    Factory -. registers tournaments .-> Registry
+    Factory -. clones .-> TournImpl
+    Creator -- createTournament --> Factory
+    Factory -- deploys --> T1 & T2 & T3
+    T1 -. delegates to .-> TournImpl
+    T2 -. delegates to .-> TournImpl
+    T3 -. delegates to .-> TournImpl
+    T1 -- updateStatus --> Registry
+    T2 -- updateStatus --> Registry
+    T3 -- updateStatus --> Registry
+    P1 -- joinTournament --> T1
+    P2 -- joinTournament --> T1
+    P1 -- exit/claimPrize --> T1
+    T1 -. transferFrom/transfer .-> USDC & PYUSD
+    PlatfromRunner --> Admin
+
+    style Admin fill:#ff6b6b
+    style Whitelist fill:#a8e6cf
+    style Registry fill:#a8e6cf
+    style Factory fill:#ffd93d
+    style TournImpl fill:#c7ceea
+    style T1 fill:#dfe6e9
+    style T2 fill:#dfe6e9
+    style T3 fill:#dfe6e9
+    style Creator fill:#4ecdc4
+    style P1 fill:#95e1d3
+    style P2 fill:#95e1d3
+```
