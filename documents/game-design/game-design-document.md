@@ -211,6 +211,68 @@ Example:
 
 ## Technical decisions
 
+### Development method
+
+Bad Debt Tycoon is built following [behaviour driven development (BDD)](https://en.wikipedia.org/wiki/Behavior-driven_development) and [test-driven development (TDD)](https://en.wikipedia.org/wiki/Test-driven_development) approaches :
+
+#### Product analysis
+
+First, we try to figure out what exactly we want to create. We can start by listing all the features of Bad Debt Tycoon in a nice, big bullet points list of features. From then on, we can start the analysis process like so :
+
+1. We group features that go together into one big, cohesive stack. For instance, we can group `initializing access control for token whitelisting management` and `access-control for tournament creation`, `tracking of the created tournaments`, `tournaments filtering by status`, `tournament creation`, `prize distribution`... into a single big `tournament lifecycle management` feature.
+2. Then, we write clear user stories (requirements from the user's perspective) for each sub features, following the "As a [role], I want [action], so that [benefit]" format ; for instance:
+
+> - Fee collection
+>   **As the platform admin**
+>   I want to **collect accumulated platform fees**,
+>   So that **the platform is sustainable** (and I can be ramen profitable).
+
+3. Each user story is followed by its acceptance criteria, which are [Gherkin scenarios](https://en.wikipedia.org/wiki/Behavior-driven_development) (Given/When/Then)
+
+```
+GIVEN platform fees have accumulated across tournaments
+WHEN platform admin calls `TournamentFactory.collectPlatformFees(token)`
+THEN all fees for that token are transferred to platform treasury
+  AND `PlatformFeesCollected(token, amount)` event is emitted
+```
+
+Technically, you should avoid writing implementation details in acceptance criteria, but here we'll allow it as it helps (personally) helps quickly jumping from requirements<>code and avoid refactoring later on because I suddenly realize I don't like the name of that variable/method.
+
+#### Technical analysis
+
+Once we know what we're building, we can start the technical analysis like so :
+
+1. **Technical breakdown**: here, write high-level system interactions of all the features in our group (flow, logic, constraints). For instance :
+
+> Tournament management is built on a permissionless system where game designers can create Bad Debt Tycoon games with customizable rules.
+> The platform maintains **two gatekeepers**: administrators define and manage which stablecoins can be used as entry fees, and authorize which entities can create valid tournaments. All tournaments are tracked in a central registry that monitors their current state.
+
+2. Once we wrote a complete technical breakdown, we can start writing the **system requirements** which are concrete implementation details (tables, API endpoints, contracts, functions, events ...) based on our technical breakdown. For instance:
+
+> #### `TournamentTokenWhitelist.sol`
+>
+> - **Goal**: Maintains approved stablecoin addresses for tournament stakes
+> - **Who uses it**: Platform admin (deployer/owner)
+> - **How it's used**: Admin adds/removes ERC20 token addresses from whitelist
+> - **Events**: `TokenWhitelisted`, `TokenRemovedFromWhitelist`
+
+3. Finally, we can start coding... tests first (remember, TDD) ! For core contract logic, we can write them in Solidity (Hardhat 3 enables this) as they are faster and closer to contract logic, while we can use typescript to tests more real-world scenarios with multiple transactions and state changes.
+
+Example:
+
+```solidity
+  // packages/contracts/contracts/features/tournament-token-whitelist/TournamentTokenWhitelist.t.sol
+  test_TournamentTokenWhitelist_AddToken()
+  test_TournamentTokenWhitelist_RevertWhen_NotAdmin() // those are simple cases
+```
+
+```ts
+// packages/contracts/contracts/features/tournament/Tournament.test.ts
+describe("Tournament Lifecycle", () => {
+  it("should handle multiple players joining and exiting"); // this is a bit more complex
+});
+```
+
 ### Architecture
 
 - **Hybrid approach:** Onchain (Arbitrum Sepolia) for SOME of the state, backend for coordination
