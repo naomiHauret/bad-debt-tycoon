@@ -1,14 +1,18 @@
 {
-  "name": "@cdt/contracts",
+  "name": "@bdt/contracts",
   "type": "module",
   "scripts": {
     "build": "bunx hardhat build",
     "test": "bunx hardhat test",
     "test:solidity": "bunx hardhat test solidity",
-    "test:nodejs":  "bunx hardhat test nodejs"
-
+    "test:nodejs": "bunx hardhat test nodejs",
+    "deploy:arb:sepolia": "bunx hardhat ignition deploy ignition/modules/BadDebtTycoon.ts --network arbitrumSepolia"
   },
+
+  
   "devDependencies": {
+    "@bdt/assets": "workspace:*",
+    "@openzeppelin/contracts": "^5.0.0",
     "@nomicfoundation/hardhat-ignition": "^3.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
     "@types/node": "^22.8.5",
