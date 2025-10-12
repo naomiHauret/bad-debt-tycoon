@@ -1,4 +1,4 @@
-# Crippling Debt Tycoon
+# Bad Debt Tycoon
 
 [ETHOnline 2025 hackathon entry](https://ethglobal.com/events/ethonline2025).
 
@@ -29,7 +29,7 @@ ESRB: 18+, player can gamble, including betting or wagering real cash or currenc
 
 ### Mechanics & game loops
 
-**Crippling Debt Tycoon** is a dead simple (but secretly complex), stupid [battle royale game](https://en.wikipedia.org/wiki/Battle_royal) of [rock paper scissors](https://en.wikipedia.org/wiki/Rock_paper_scissors), with a [player-led economy](https://en.wikipedia.org/wiki/Virtual_economy) born from players decisions and [emergent gameplay](https://en.wikipedia.org/wiki/Emergent_gameplay).
+**Bad Debt Tycoon** (bdt) is a dead simple (but secretly complex), stupid [battle royale game](https://en.wikipedia.org/wiki/Battle_royal) of [rock paper scissors](https://en.wikipedia.org/wiki/Rock_paper_scissors), with a [player-led economy](https://en.wikipedia.org/wiki/Virtual_economy) born from players decisions and [emergent gameplay](https://en.wikipedia.org/wiki/Emergent_gameplay).
 
 Players can enter a battle royale (each player for themselves) by putting at stake a certain amount of a token. Against that token, they receive :
 
