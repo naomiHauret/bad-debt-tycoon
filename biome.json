@@ -37,7 +37,7 @@
                   "kind": "const",
                   "scope": "any"
                 },
-                "formats": ["CONSTANT_CASE"]
+                "formats": ["CONSTANT_CASE", "camelCase"]
               },
               {
                 "selector": {
@@ -65,7 +65,7 @@
                   "kind": "objectLiteralProperty",
                   "scope": "any"
                 },
-                "formats": ["camelCase"]
+                "formats": ["camelCase", "PascalCase"]
               },
               {
                 "selector": {
