@@ -26,11 +26,12 @@ contract TournamentRegistryTest is Test {
         registry = new TournamentRegistry();
     }
 
-    // Ensure platform runner is deployer address (contract owner)
+    // Platform runner should be deployer address (contract owner)
     function test_DeploymentSetsCorrectOwner() public view {
         assertEq(registry.owner(), owner);
     }
 
+    // Registry should be empty post creation
     function test_DeploymentInitializesEmptyRegistry() public view {
         address[] memory tournaments = registry.getAllTournaments();
         assertEq(tournaments.length, 0);
@@ -40,13 +41,13 @@ contract TournamentRegistryTest is Test {
     // The registry needs to control who can add tournaments to avoid malicious entries.
     // So we "issue"/"grant" the role of "factory" to a trusted factory contract (ours).
 
-    // Ensure only the platform runner can grant the factory role
+    // Only platform runner can grant the factory role
     function test_OwnerCanGrantFactoryRole() public {
         registry.grantFactoryRole(factory);
         assertTrue(registry.hasFactoryRole(factory));
     }
 
-    // Verify events are emitted properly (factory role granted)
+    // grantFactoryRole() should emit `FactoryRoleGranted` event
     function test_GrantFactoryRoleEmitsEvent() public {
         vm.expectEmit(true, false, false, false);
         emit TournamentRegistry.FactoryRoleGranted(factory);
@@ -54,7 +55,7 @@ contract TournamentRegistryTest is Test {
         registry.grantFactoryRole(factory);
     }
 
-    // Verify events are emitted properly (factory role revoked)
+    // revokeFactoryRole() should emit `FactoryRoleRevoked` event
     function test_RevokeFactoryRoleEmitsEvent() public {
         registry.grantFactoryRole(factory);
 
@@ -66,7 +67,7 @@ contract TournamentRegistryTest is Test {
         registry.revokeFactoryRole(factory);
     }
 
-    // Only the platform runner should be able to grant/revoke the factory role
+    // Registry should be able to revoke factory role
     function test_OwnerCanRevokeFactoryRole() public {
         registry.grantFactoryRole(factory);
         registry.revokeFactoryRole(factory);
@@ -74,6 +75,7 @@ contract TournamentRegistryTest is Test {
         assertFalse(registry.hasFactoryRole(factory));
     }
 
+    // Should revert when non owner tries to grant factory role
     function test_RevertWhen_NonOwnerTriesToGrantFactoryRole() public {
         vm.prank(nonFactory);
         vm.expectRevert(
@@ -85,6 +87,7 @@ contract TournamentRegistryTest is Test {
         registry.grantFactoryRole(factory);
     }
 
+    // Should revert when non-owner tries to revoke factory role
     function test_RevertWhen_NonOwnerTriesToRevokeFactoryRole() public {
         registry.grantFactoryRole(factory);
 
@@ -106,7 +109,39 @@ contract TournamentRegistryTest is Test {
 
     // Tournament registration
 
-    // Ensure factory can create and track tournaments
+    // hasFactoryRole() should return false after revokeFactoryRole()
+    function test_RevokingNeverGrantedFactoryRole() public {
+        registry.revokeFactoryRole(factory);
+        assertFalse(registry.hasFactoryRole(factory));
+    }
+
+    // Granting factory role 2x in a row shouldn't error/change anything
+    function test_GrantingFactoryRoleTwice() public {
+        registry.grantFactoryRole(factory);
+        registry.grantFactoryRole(factory);
+        assertTrue(registry.hasFactoryRole(factory));
+    }
+
+    // Trying to change tournament status to same status
+    // in registry shouldn't error/change anything
+    function test_UpdatingToSameStatusDoesNothing() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Open
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+    }
+
+    // Vetted registry should be able to register and track tournaments
     function test_FactoryCanRegisterTournament() public {
         registry.grantFactoryRole(factory);
 
@@ -118,7 +153,7 @@ contract TournamentRegistryTest is Test {
         assertEq(tournaments[0], tournament1);
     }
 
-    // Ensure creating a tournament emits the proper event `TournamentRegistered`
+    // registerTournament() should emit `TournamentRegistered` event
     function test_RegisterTournamentEmitsEvent() public {
         registry.grantFactoryRole(factory);
 
@@ -134,7 +169,7 @@ contract TournamentRegistryTest is Test {
         registry.registerTournament(tournament1);
     }
 
-    // Ensure that when the factory creates a tournament, the tournament status is "Open"
+    // When tracked in the registry for the first time, tracked tournament status is "Open"
     function test_RegisterTournamentInitializesWithOpenStatus() public {
         registry.grantFactoryRole(factory);
 
@@ -146,7 +181,7 @@ contract TournamentRegistryTest is Test {
         );
     }
 
-    // Ensure the factory can run create and track multiple tournaments
+    // Registry should be able to register and track multiple tournaments
     function test_FactoryCanRegisterMultipleTournaments() public {
         registry.grantFactoryRole(factory);
 
@@ -160,7 +195,7 @@ contract TournamentRegistryTest is Test {
         assertEq(tournaments.length, 3);
     }
 
-    // Ensure only OUR factories can create Bad Debt Tycoon tournaments
+    // Ensure only addresses with factory role can register tournaments
     function test_RevertWhen_NonFactoryTriesToRegisterTournament() public {
         vm.prank(nonFactory);
         vm.expectRevert(TournamentRegistry.OnlyFactory.selector);
@@ -233,33 +268,6 @@ contract TournamentRegistryTest is Test {
         );
     }
 
-    function test_CanUpdateThroughAllStatuses() public {
-        registry.grantFactoryRole(factory);
-
-        vm.prank(factory);
-        registry.registerTournament(tournament1);
-
-        // Open -> Active
-        vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
-        assertEq(
-            registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Active)
-        );
-
-        // Active -> Ended
-        vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Ended
-        );
-        assertEq(
-            registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Ended)
-        );
-    }
-
     // Ensure only tournament contracts can update their own status
     function test_RevertWhen_NonTournamentTriesToUpdateStatus() public {
         registry.grantFactoryRole(factory);
@@ -285,7 +293,6 @@ contract TournamentRegistryTest is Test {
         );
     }
 
-    // - Query
     // Get all registered tournaments
     function test_GetAllTournamentsReturnsAllRegistered() public {
         registry.grantFactoryRole(factory);
@@ -338,7 +345,8 @@ contract TournamentRegistryTest is Test {
         assertEq(activeTournaments[1], tournament2);
     }
 
-    // Verifies that tournaments can be tracked by their status
+    // Verifies that tracked tournaments status changes are reflected
+    // in registry when queried
     function test_GetTournamentStatusReturnsCorrectStatus() public {
         registry.grantFactoryRole(factory);
 
@@ -361,7 +369,8 @@ contract TournamentRegistryTest is Test {
         );
     }
 
-    // Verifies that tournaments are tracked properly (tournament exists once created)
+    // Verifies that tournaments are tracked properly
+    // (tournament exists once created)
     function test_IsTournamentRegisteredReturnsCorrectValue() public {
         assertFalse(registry.isTournamentRegistered(tournament1));
 
@@ -372,7 +381,8 @@ contract TournamentRegistryTest is Test {
         assertTrue(registry.isTournamentRegistered(tournament1));
     }
 
-    // Verifies that tournaments are tracked properly (list size updates when tournament is created)
+    // Verifies that tournaments are tracked properly
+    // (list size updates when tournament is created)
     function test_GetTournamentCountReturnsCorrectCount() public {
         assertEq(registry.getTournamentCount(), 0);
 
@@ -387,41 +397,395 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
     }
 
-    function test_RegisterAndQueryTournament(address tournament) public {
-        vm.assume(tournament != address(0));
+    // Should return 0 when querying for existing status with 0 tracked tournaments
+    function test_GetTournamentsByStatusReturnsEmptyArray() public {
+        address[] memory activeTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
 
+        assertEq(activeTournaments.length, 0);
+    }
+
+    // Should be able to track different status transitions of different tracked tournaments
+    function test_ComplexStatusTransitions() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        registry.registerTournament(tournament3);
+        vm.stopPrank();
+
+        // tournament1: Open -> Active -> Ended
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Ended
+        );
+
+        // tournament2: Open -> Cancelled
+        vm.prank(tournament2);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Cancelled
+        );
+
+        // tournament3: stays Open
+
+        assertEq(
+            registry
+                .getTournamentsByStatus(
+                    TournamentRegistry.TournamentStatus.Open
+                )
+                .length,
+            1
+        );
+        assertEq(
+            registry
+                .getTournamentsByStatus(
+                    TournamentRegistry.TournamentStatus.Active
+                )
+                .length,
+            0
+        );
+        assertEq(
+            registry
+                .getTournamentsByStatus(
+                    TournamentRegistry.TournamentStatus.Ended
+                )
+                .length,
+            1
+        );
+        assertEq(
+            registry
+                .getTournamentsByStatus(
+                    TournamentRegistry.TournamentStatus.Cancelled
+                )
+                .length,
+            1
+        );
+
+        assertEq(registry.getTournamentCount(), 3);
+    }
+
+    // Should be able to update registered tournament status to "Open"
+    function test_UpdateToOpenStatus() public {
         registry.grantFactoryRole(factory);
 
         vm.prank(factory);
-        registry.registerTournament(tournament);
+        registry.registerTournament(tournament1);
 
-        assertTrue(registry.isTournamentRegistered(tournament));
+        vm.prank(tournament1);
         assertEq(
-            registry.getTournamentStatus(tournament),
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Locked
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Locked)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Open
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
             uint8(TournamentRegistry.TournamentStatus.Open)
         );
     }
 
-    // Tournament can update its status
-    function test_TournamentCanUpdateStatus(
-        address tournament,
-        uint8 statusValue
-    ) public {
-        vm.assume(tournament != address(0));
-        vm.assume(
-            statusValue <= uint8(TournamentRegistry.TournamentStatus.Cancelled)
-        );
-
+    // Should be able to update registered tournament status to "PendingStart"
+    function test_UpdateToPendingStartStatus() public {
         registry.grantFactoryRole(factory);
 
         vm.prank(factory);
-        registry.registerTournament(tournament);
+        registry.registerTournament(tournament1);
 
-        vm.prank(tournament);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus(statusValue)
+        vm.prank(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
         );
 
-        assertEq(registry.getTournamentStatus(tournament), statusValue);
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.PendingStart
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.PendingStart)
+        );
+    }
+
+    // Should be able to update registered tournament status to "Active"
+    function test_UpdateToActiveStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+
+        vm.prank(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Active)
+        );
+    }
+
+    // Should be able to update registered tournament status to "Ended"
+    function test_UpdateToEndedStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+
+        vm.prank(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Ended
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Ended)
+        );
+    }
+
+    // Should be able to update registered tournament status to "Locked"
+    function test_UpdateToLockedStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+
+        vm.prank(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Locked
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Locked)
+        );
+    }
+
+    // Should be able to update registered tournament status to "Cancelled"
+    function test_UpdateToCancelledStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+
+        vm.prank(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Cancelled
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Cancelled)
+        );
+    }
+
+    // Changing status back and forth should work
+    function test_StatusChangesBackAndForth() public {
+        registry.grantFactoryRole(factory);
+
+        vm.prank(factory);
+        registry.registerTournament(tournament1);
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+        // Open -> Active
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Active)
+        );
+
+        // Active -> Open (going backwards)
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Open
+        );
+
+        assertEq(
+            registry.getTournamentStatus(tournament1),
+            uint8(TournamentRegistry.TournamentStatus.Open)
+        );
+
+        // Verify it's in the correct status array
+        address[] memory openTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Open
+        );
+        assertEq(openTournaments.length, 1);
+        assertEq(openTournaments[0], tournament1);
+    }
+
+    // Can query registry for (registered) "PendingStart" tournaments
+    function test_GetTournamentsByPendingStartStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        vm.stopPrank();
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.PendingStart
+        );
+
+        address[] memory pendingTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.PendingStart
+        );
+
+        assertEq(pendingTournaments.length, 1);
+        assertEq(pendingTournaments[0], tournament1);
+    }
+
+    // Can query registry for (registered) "Active" tournaments
+    function test_GetTournamentsByActiveStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        vm.stopPrank();
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
+
+        address[] memory activeTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Active
+        );
+
+        assertEq(activeTournaments.length, 1);
+        assertEq(activeTournaments[0], tournament1);
+    }
+
+    // Can query registry for (registered) "Ended" tournaments
+    function test_GetTournamentsByEndedStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        vm.stopPrank();
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Ended
+        );
+
+        address[] memory endedTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Ended
+        );
+
+        assertEq(endedTournaments.length, 1);
+        assertEq(endedTournaments[0], tournament1);
+    }
+    // Can query registry for (registered) "Cancelled" tournaments
+    function test_GetTournamentsByCancelledStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        vm.stopPrank();
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Cancelled
+        );
+
+        address[] memory cancelledTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Cancelled
+        );
+
+        assertEq(cancelledTournaments.length, 1);
+        assertEq(cancelledTournaments[0], tournament1);
+    }
+
+    // Can query registry for (registered) "Locked" tournaments
+    function test_GetTournamentsByLockedStatus() public {
+        registry.grantFactoryRole(factory);
+
+        vm.startPrank(factory);
+        registry.registerTournament(tournament1);
+        registry.registerTournament(tournament2);
+        vm.stopPrank();
+
+        vm.prank(tournament1);
+        registry.updateTournamentStatus(
+            TournamentRegistry.TournamentStatus.Locked
+        );
+
+        address[] memory cancelledTournaments = registry.getTournamentsByStatus(
+            TournamentRegistry.TournamentStatus.Locked
+        );
+
+        assertEq(cancelledTournaments.length, 1);
+        assertEq(cancelledTournaments[0], tournament1);
+    }
+
+    // Should throw error when trying to get status of untracked tournament
+    function test_RevertWhen_GettingStatusOfUnregisteredTournament() public {
+        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
+        registry.getTournamentStatus(tournament1);
+    }
+
+    // Should throw error when trying to get status of random address
+    function test_RevertWhen_GettingStatusOfAnyUnregisteredTournament(
+        address randomTournament
+    ) public {
+        vm.assume(randomTournament != address(0));
+        vm.assume(!registry.isTournamentRegistered(randomTournament));
+
+        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
+        registry.getTournamentStatus(randomTournament);
     }
 }
