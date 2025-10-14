@@ -12,8 +12,8 @@ contract TournamentRegistry is Ownable {
         Active, // Game in progress
         Ended, // Finished normally
         Cancelled, // Start conditions not met
-        Locked,
-        PendingStart
+        Locked, // Maximum players threshold reached
+        PendingStart // Start timestamp reached, assessing other start conditions
     }
 
     // Addresses authorized to register tournaments
