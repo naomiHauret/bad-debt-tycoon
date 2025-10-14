@@ -2,7 +2,7 @@
 
 [ETHOnline 2025 hackathon entry](https://ethglobal.com/events/ethonline2025).
 
-> A resource management battle royale economy sim where you have to claw your way out of debt by playing rock paper scissors. Whether you play, trade with other players or tamper with the shared central deck is up to you - as long as you have what it takes to survive til the end.
+> A resource management survival economy sim where you have to claw your way out of debt by playing rock paper scissors. Whether you play, trade with other players or tamper with the shared central deck is up to you - as long as you have what it takes to make it til the end.
 
 ### Genres
 

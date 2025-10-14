@@ -273,6 +273,8 @@ describe("Tournament Lifecycle", () => {
 });
 ```
 
+The Typescript tests don't uses Node runner (tried with Bun test runner, doesn't seem to be supported yet), no other framework.
+
 ### Architecture
 
 - **Hybrid approach:** Onchain (Arbitrum Sepolia) for SOME of the state, backend for coordination
