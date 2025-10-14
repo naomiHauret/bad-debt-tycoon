@@ -11,7 +11,9 @@ contract TournamentRegistry is Ownable {
         Open, // Accepting players
         Active, // Game in progress
         Ended, // Finished normally
-        Cancelled // Start conditions not met
+        Cancelled, // Start conditions not met
+        Locked,
+        PendingStart
     }
 
     // Addresses authorized to register tournaments
@@ -51,6 +53,14 @@ contract TournamentRegistry is Ownable {
     error OnlyTournament();
     error TournamentAlreadyRegistered();
     error TournamentNotRegistered();
+
+    // Modifiers/hooks
+    modifier onlyRegisteredTournament(address tournament) {
+        if (!_isRegistered[tournament]) {
+            revert TournamentNotRegistered();
+        }
+        _;
+    }
 
     constructor() Ownable(msg.sender) {}
 
@@ -131,7 +141,7 @@ contract TournamentRegistry is Ownable {
     function _removeFromStatusArray(
         address tournament,
         TournamentStatus status
-    ) private {
+    ) private onlyRegisteredTournament(tournament) {
         uint256 indexToRemove = _tournamentStatusIndex[tournament][status];
         uint256 lastIndex = _tournamentsByStatus[status].length - 1;
 
@@ -156,7 +166,7 @@ contract TournamentRegistry is Ownable {
 
     function getTournamentStatus(
         address tournament
-    ) external view returns (uint8) {
+    ) external view onlyRegisteredTournament(tournament) returns (uint8) {
         return uint8(_tournamentStatus[tournament]);
     }
 
