@@ -59,4 +59,3 @@ Their stake amount is also important, not only to issue refund or allow pre-game
 - `TournamentLocked()`: When `maxPlayers` threshold is reached
 - `CannotExit()`: player doesn't meet requirements (amount of lives/coins)
 - `ForfeitNotAllowed()`: tournament doesn't allow players to forfeit
--
