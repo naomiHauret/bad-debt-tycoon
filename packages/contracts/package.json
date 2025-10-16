@@ -14,7 +14,6 @@
     "@nomicfoundation/hardhat-ignition": "^3.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
     "@openzeppelin/contracts": "^5.0.0",
-    "@solidstate/hardhat-contract-sizer": "^3.0.0",
     "@types/node": "^22.8.5",
     "@wagmi/cli": "^2.7.0",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
