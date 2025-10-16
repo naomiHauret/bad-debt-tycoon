@@ -2,62 +2,48 @@
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {TournamentCore} from "./../../core/TournamentCore.sol";
 
-/**
- * Central registry for tracking all tournaments and their statuses
- */
 contract TournamentRegistry is Ownable {
-    enum TournamentStatus {
-        Open, // Accepting players
-        Active, // Game in progress
-        Ended, // Finished normally
-        Cancelled, // Start conditions not met
-        Locked, // Maximum players threshold reached
-        PendingStart // Start timestamp reached, assessing other start conditions
-    }
-
-    // Addresses authorized to register tournaments
+    // Mapping contract address  -> flag
     mapping(address => bool) private _hasFactoryRole;
 
     address[] private _allTournaments;
 
-    // Mapping to check if a tournament is registered
+    // Mapping tournament address  -> flag
     mapping(address => bool) private _isRegistered;
 
-    // Mapping from tournament address to its current status
-    mapping(address => TournamentStatus) private _tournamentStatus;
+    // Mapping tournament address -> status
+    mapping(address => TournamentCore.Status) private _tournamentStatus;
 
-    // Mapping from status to array of tournament addresses
-    mapping(TournamentStatus => address[]) private _tournamentsByStatus;
+    // Mapping status -> tournament addresses
+    mapping(TournamentCore.Status => address[]) private _tournamentsByStatus;
 
-    // Mapping from tournament to its index in status-specific array
-    mapping(address => mapping(TournamentStatus => uint256))
+    // Mapping tournament address -> index in status-specific array
+    mapping(address => mapping(TournamentCore.Status => uint256))
         private _tournamentStatusIndex;
 
-    // Events
     event FactoryRoleGranted(address indexed factory);
     event FactoryRoleRevoked(address indexed factory);
     event TournamentRegistered(
         address indexed tournament,
-        TournamentStatus status
+        TournamentCore.Status status
     );
     event TournamentStatusUpdated(
         address indexed tournament,
-        TournamentStatus oldStatus,
-        TournamentStatus newStatus
+        TournamentCore.Status oldStatus,
+        TournamentCore.Status newStatus
     );
 
-    // Errors
     error InvalidAddress();
     error OnlyFactory();
     error OnlyTournament();
-    error TournamentAlreadyRegistered();
-    error TournamentNotRegistered();
+    error AlreadyRegistered();
+    error NotRegistered();
 
-    // Modifiers/hooks
     modifier onlyRegisteredTournament(address tournament) {
         if (!_isRegistered[tournament]) {
-            revert TournamentNotRegistered();
+            revert NotRegistered();
         }
         _;
     }
@@ -89,14 +75,13 @@ contract TournamentRegistry is Ownable {
             revert InvalidAddress();
         }
         if (_isRegistered[tournament]) {
-            revert TournamentAlreadyRegistered();
+            revert AlreadyRegistered();
         }
 
         _isRegistered[tournament] = true;
         _allTournaments.push(tournament);
 
-        // Initialize with "open" status
-        TournamentStatus initialStatus = TournamentStatus.Open;
+        TournamentCore.Status initialStatus = TournamentCore.Status.Open;
         _tournamentStatus[tournament] = initialStatus;
         _tournamentStatusIndex[tournament][
             initialStatus
@@ -106,41 +91,32 @@ contract TournamentRegistry is Ownable {
         emit TournamentRegistered(tournament, initialStatus);
     }
 
-    /**
-     * Update tournament status
-     * Only callable by the tournament contract itself
-     */
-    function updateTournamentStatus(TournamentStatus newStatus) external {
+    function updateTournamentStatus(TournamentCore.Status newStatus) external {
         if (!_isRegistered[msg.sender]) {
-            revert TournamentNotRegistered();
+            revert NotRegistered();
         }
 
         address tournament = msg.sender;
-        TournamentStatus oldStatus = _tournamentStatus[tournament];
+        TournamentCore.Status oldStatus = _tournamentStatus[tournament];
 
         // Exit if status hasn't changed
         if (oldStatus == newStatus) {
             return;
         }
 
-        // Remove from old status array
         _removeFromStatusArray(tournament, oldStatus);
 
-        // Add to new status array
         _tournamentStatusIndex[tournament][newStatus] = _tournamentsByStatus[
             newStatus
         ].length;
         _tournamentsByStatus[newStatus].push(tournament);
-
-        // Update status mapping
         _tournamentStatus[tournament] = newStatus;
-
         emit TournamentStatusUpdated(tournament, oldStatus, newStatus);
     }
 
     function _removeFromStatusArray(
         address tournament,
-        TournamentStatus status
+        TournamentCore.Status status
     ) private onlyRegisteredTournament(tournament) {
         uint256 indexToRemove = _tournamentStatusIndex[tournament][status];
         uint256 lastIndex = _tournamentsByStatus[status].length - 1;
@@ -159,7 +135,7 @@ contract TournamentRegistry is Ownable {
     }
 
     function getTournamentsByStatus(
-        TournamentStatus status
+        TournamentCore.Status status
     ) external view returns (address[] memory) {
         return _tournamentsByStatus[status];
     }

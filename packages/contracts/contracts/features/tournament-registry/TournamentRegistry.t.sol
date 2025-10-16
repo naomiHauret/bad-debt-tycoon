@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Test} from "forge-std/Test.sol";
+import {TournamentCore} from "./../../core/TournamentCore.sol";
 import {TournamentRegistry} from "./TournamentRegistry.sol";
 
 contract TournamentRegistryTest is Test {
@@ -131,13 +132,11 @@ contract TournamentRegistryTest is Test {
         registry.registerTournament(tournament1);
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Open
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Open);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
     }
 
@@ -162,7 +161,7 @@ contract TournamentRegistryTest is Test {
         vm.expectEmit(true, true, false, false);
         emit TournamentRegistry.TournamentRegistered(
             tournament1,
-            TournamentRegistry.TournamentStatus.Open
+            TournamentCore.Status.Open
         );
 
         vm.prank(factory);
@@ -177,7 +176,7 @@ contract TournamentRegistryTest is Test {
         registry.registerTournament(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
     }
 
@@ -218,9 +217,7 @@ contract TournamentRegistryTest is Test {
         vm.startPrank(factory);
         registry.registerTournament(tournament1);
 
-        vm.expectRevert(
-            TournamentRegistry.TournamentAlreadyRegistered.selector
-        );
+        vm.expectRevert(TournamentRegistry.AlreadyRegistered.selector);
         registry.registerTournament(tournament1);
         vm.stopPrank();
     }
@@ -236,17 +233,15 @@ contract TournamentRegistryTest is Test {
 
         // Tournament updates its own status
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Active)
+            uint8(TournamentCore.Status.Active)
         );
     }
 
-    // Check that a tournament status change emits the appropriate TournamentStatusUpdated event
+    // Tournament status change should emit the TournamentStatusUpdated event with accurate former -> new
     function test_UpdateStatusEmitsEvent() public {
         registry.grantFactoryRole(factory);
 
@@ -258,14 +253,12 @@ contract TournamentRegistryTest is Test {
         vm.expectEmit(true, true, true, false);
         emit TournamentRegistry.TournamentStatusUpdated(
             tournament1,
-            TournamentRegistry.TournamentStatus.Open,
-            TournamentRegistry.TournamentStatus.Active
+            TournamentCore.Status.Open,
+            TournamentCore.Status.Active
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
     }
 
     // Ensure only tournament contracts can update their own status
@@ -276,10 +269,8 @@ contract TournamentRegistryTest is Test {
         registry.registerTournament(tournament1);
 
         vm.prank(nonFactory);
-        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        vm.expectRevert(TournamentRegistry.NotRegistered.selector);
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
     }
 
     // Checks that the registry can't update the status of an untracked tournament
@@ -287,10 +278,8 @@ contract TournamentRegistryTest is Test {
         public
     {
         vm.prank(tournament1);
-        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        vm.expectRevert(TournamentRegistry.NotRegistered.selector);
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
     }
 
     // Get all registered tournaments
@@ -320,21 +309,17 @@ contract TournamentRegistryTest is Test {
 
         // Update some to Active status
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         vm.prank(tournament2);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         // Query by status
         address[] memory openTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Open
+            TournamentCore.Status.Open
         );
         address[] memory activeTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Active
+            TournamentCore.Status.Active
         );
 
         assertEq(openTournaments.length, 1);
@@ -355,17 +340,15 @@ contract TournamentRegistryTest is Test {
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Active)
+            uint8(TournamentCore.Status.Active)
         );
     }
 
@@ -400,7 +383,7 @@ contract TournamentRegistryTest is Test {
     // Should return 0 when querying for existing status with 0 tracked tournaments
     function test_GetTournamentsByStatusReturnsEmptyArray() public {
         address[] memory activeTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Active
+            TournamentCore.Status.Active
         );
 
         assertEq(activeTournaments.length, 0);
@@ -418,51 +401,33 @@ contract TournamentRegistryTest is Test {
 
         // tournament1: Open -> Active -> Ended
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Ended
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Ended);
 
         // tournament2: Open -> Cancelled
         vm.prank(tournament2);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Cancelled
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Cancelled);
 
         // tournament3: stays Open
 
         assertEq(
-            registry
-                .getTournamentsByStatus(
-                    TournamentRegistry.TournamentStatus.Open
-                )
-                .length,
+            registry.getTournamentsByStatus(TournamentCore.Status.Open).length,
             1
         );
         assertEq(
             registry
-                .getTournamentsByStatus(
-                    TournamentRegistry.TournamentStatus.Active
-                )
+                .getTournamentsByStatus(TournamentCore.Status.Active)
                 .length,
             0
         );
         assertEq(
-            registry
-                .getTournamentsByStatus(
-                    TournamentRegistry.TournamentStatus.Ended
-                )
-                .length,
+            registry.getTournamentsByStatus(TournamentCore.Status.Ended).length,
             1
         );
         assertEq(
             registry
-                .getTournamentsByStatus(
-                    TournamentRegistry.TournamentStatus.Cancelled
-                )
+                .getTournamentsByStatus(TournamentCore.Status.Cancelled)
                 .length,
             1
         );
@@ -480,27 +445,23 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Locked
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Locked);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Locked)
+            uint8(TournamentCore.Status.Locked)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Open
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Open);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
     }
 
@@ -514,17 +475,15 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.PendingStart
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.PendingStart);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.PendingStart)
+            uint8(TournamentCore.Status.PendingStart)
         );
     }
 
@@ -538,17 +497,15 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Active)
+            uint8(TournamentCore.Status.Active)
         );
     }
 
@@ -562,17 +519,15 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Ended
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Ended);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Ended)
+            uint8(TournamentCore.Status.Ended)
         );
     }
 
@@ -586,17 +541,15 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Locked
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Locked);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Locked)
+            uint8(TournamentCore.Status.Locked)
         );
     }
 
@@ -610,17 +563,15 @@ contract TournamentRegistryTest is Test {
         vm.prank(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Cancelled
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Cancelled);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Cancelled)
+            uint8(TournamentCore.Status.Cancelled)
         );
     }
 
@@ -632,32 +583,28 @@ contract TournamentRegistryTest is Test {
         registry.registerTournament(tournament1);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
         // Open -> Active
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Active)
+            uint8(TournamentCore.Status.Active)
         );
 
         // Active -> Open (going backwards)
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Open
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Open);
 
         assertEq(
             registry.getTournamentStatus(tournament1),
-            uint8(TournamentRegistry.TournamentStatus.Open)
+            uint8(TournamentCore.Status.Open)
         );
 
         // Verify it's in the correct status array
         address[] memory openTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Open
+            TournamentCore.Status.Open
         );
         assertEq(openTournaments.length, 1);
         assertEq(openTournaments[0], tournament1);
@@ -673,12 +620,10 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.PendingStart
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.PendingStart);
 
         address[] memory pendingTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.PendingStart
+            TournamentCore.Status.PendingStart
         );
 
         assertEq(pendingTournaments.length, 1);
@@ -695,12 +640,10 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Active
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Active);
 
         address[] memory activeTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Active
+            TournamentCore.Status.Active
         );
 
         assertEq(activeTournaments.length, 1);
@@ -717,12 +660,10 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Ended
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Ended);
 
         address[] memory endedTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Ended
+            TournamentCore.Status.Ended
         );
 
         assertEq(endedTournaments.length, 1);
@@ -738,12 +679,10 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Cancelled
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Cancelled);
 
         address[] memory cancelledTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Cancelled
+            TournamentCore.Status.Cancelled
         );
 
         assertEq(cancelledTournaments.length, 1);
@@ -760,12 +699,10 @@ contract TournamentRegistryTest is Test {
         vm.stopPrank();
 
         vm.prank(tournament1);
-        registry.updateTournamentStatus(
-            TournamentRegistry.TournamentStatus.Locked
-        );
+        registry.updateTournamentStatus(TournamentCore.Status.Locked);
 
         address[] memory cancelledTournaments = registry.getTournamentsByStatus(
-            TournamentRegistry.TournamentStatus.Locked
+            TournamentCore.Status.Locked
         );
 
         assertEq(cancelledTournaments.length, 1);
@@ -774,7 +711,7 @@ contract TournamentRegistryTest is Test {
 
     // Should throw error when trying to get status of untracked tournament
     function test_RevertWhen_GettingStatusOfUnregisteredTournament() public {
-        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
+        vm.expectRevert(TournamentRegistry.NotRegistered.selector);
         registry.getTournamentStatus(tournament1);
     }
 
@@ -785,7 +722,7 @@ contract TournamentRegistryTest is Test {
         vm.assume(randomTournament != address(0));
         vm.assume(!registry.isTournamentRegistered(randomTournament));
 
-        vm.expectRevert(TournamentRegistry.TournamentNotRegistered.selector);
+        vm.expectRevert(TournamentRegistry.NotRegistered.selector);
         registry.getTournamentStatus(randomTournament);
     }
 }
