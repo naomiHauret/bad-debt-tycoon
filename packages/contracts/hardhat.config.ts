@@ -7,7 +7,8 @@ import { arbitrumSepolia } from "viem/chains";
  * @see https://hardhat.org/docs/reference/configuration
  */
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViemPlugin],
+  plugins: [
+    hardhatToolboxViemPlugin],
   solidity: {
     profiles: {
       default: {
@@ -16,6 +17,8 @@ const config: HardhatUserConfig = {
       production: {
         version: "0.8.28",
         settings: {
+          // biome-ignore lint/style/useNamingConvention: hardhat named this, i
+          viaIR: true,
           optimizer: {
             enabled: true,
             runs: 200,
