@@ -9,3 +9,6 @@
 # Hardhat files
 /artifacts
 /cache
+
+# wagmi/cli
+generated.ts
