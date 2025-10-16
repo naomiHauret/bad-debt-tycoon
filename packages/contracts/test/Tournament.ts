@@ -934,4 +934,503 @@ describe("Tournament Lifecycle", async () => {
       })
     })
   })
+
+  describe("Prize distribution", () => {
+    it("should allow winners to claim equal share of prize after tournament ends", async () => {
+      const tournament = await deployTournament({
+        startPlayerCount: 2,
+        maxPlayers: 2,
+        duration: 100,
+      })
+      const [, creator, player1, player2] = accounts
+
+      // Both join with 100 tokens (200 total)
+      await token.write.mint([player1.account.address, BigInt(200e18)])
+      await token.write.mint([player2.account.address, BigInt(200e18)])
+
+      await token.write.approve([tournament.address, BigInt(100e18)], {
+        account: player1.account,
+      })
+      await tournament.write.joinTournament([BigInt(100e18)], {
+        account: player1.account,
+      })
+
+      await token.write.approve([tournament.address, BigInt(100e18)], {
+        account: player2.account,
+      })
+      await tournament.write.joinTournament([BigInt(100e18)], {
+        account: player2.account,
+      })
+
+      // Start
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Both exit
+      await tournament.write.exit({ account: player1.account })
+      await tournament.write.exit({ account: player2.account })
+
+      // End tournament
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Claim prizes
+      // Total: 200, Platform fee (1%): 2, Creator fee (2%): 4
+      // Remaining: 194, Per winner: 97
+      const balance1Before = await token.read.balanceOf([player1.account.address])
+      await tournament.write.claimPrize({ account: player1.account })
+      const balance1After = await token.read.balanceOf([player1.account.address])
+
+      const balance2Before = await token.read.balanceOf([player2.account.address])
+      await tournament.write.claimPrize({ account: player2.account })
+      const balance2After = await token.read.balanceOf([player2.account.address])
+
+      const prize1 = balance1After - balance1Before
+      const prize2 = balance2After - balance2Before
+
+      assert.equal(prize1, prize2, "Both winners should get equal prize")
+      assert.equal(prize1, BigInt(97e18), "Each should get 97 tokens")
+    })
+
+    it("should only allow winner to collect prize share once", async () => {
+      const tournament = await deployTournament({
+        startPlayerCount: 1,
+        duration: 100,
+      })
+      const player = accounts[2]
+
+      await token.write.mint([player.account.address, BigInt(100e18)])
+      await token.write.approve([tournament.address, BigInt(50e18)], {
+        account: player.account,
+      })
+      await tournament.write.joinTournament([BigInt(50e18)], {
+        account: player.account,
+      })
+
+      // Start and exit
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+      await tournament.write.exit({ account: player.account })
+
+      // End
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Claim once
+      await tournament.write.claimPrize({ account: player.account })
+
+      // Try claim again
+      await assert.rejects(
+        async () => {
+          await tournament.write.claimPrize({ account: player.account })
+        },
+        /AlreadyClaimed/,
+        "Should not allow claiming twice",
+      )
+    })
+
+    it("should allow winners to collect at anytime after the tournament ended", async () => {
+      const tournament = await deployTournament({
+        startPlayerCount: 1,
+        duration: 100,
+      })
+      const player = accounts[2]
+
+      await token.write.mint([player.account.address, BigInt(100e18)])
+      await token.write.approve([tournament.address, BigInt(50e18)], {
+        account: player.account,
+      })
+      await tournament.write.joinTournament([BigInt(50e18)], {
+        account: player.account,
+      })
+
+      // Start and exit
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+      await tournament.write.exit({ account: player.account })
+
+      // End
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Wait a long time
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [100000],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+
+      // Should still be able to claim
+      const balanceBefore = await token.read.balanceOf([player.account.address])
+      await tournament.write.claimPrize({ account: player.account })
+      const balanceAfter = await token.read.balanceOf([player.account.address])
+
+      assert.ok(balanceAfter > balanceBefore, "Should receive prize even after long time")
+    })
+
+    it("should not allow losers/forfeited/withdrawn to collect from the prize pool", async () => {
+      const tournament = await deployTournament({
+        startPlayerCount: 1,
+      })
+      const player = accounts[2]
+
+      await token.write.mint([player.account.address, BigInt(100e18)])
+      await token.write.approve([tournament.address, BigInt(50e18)], {
+        account: player.account,
+      })
+      await tournament.write.joinTournament([BigInt(50e18)], {
+        account: player.account,
+      })
+
+      // Start and forfeit
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+      await tournament.write.forfeit({ account: player.account })
+
+      // End
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [3710],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Try to claim prize
+      await assert.rejects(
+        async () => {
+          await tournament.write.claimPrize({ account: player.account })
+        },
+        /NotWinner/,
+        "Forfeited player should not be able to claim prize",
+      )
+    })
+  })
+
+  describe("Fee collection", () => {
+    it("should allow creator to collect fees after tournament ends", async () => {
+      const tournament = await deployTournament({
+        startPlayerCount: 1,
+        duration: 100,
+        creatorFeePercent: 5,
+      })
+      const [, creator] = accounts
+      const player = accounts[2]
+
+      await token.write.mint([player.account.address, BigInt(100e18)])
+      await token.write.approve([tournament.address, BigInt(100e18)], {
+        account: player.account,
+      })
+      await tournament.write.joinTournament([BigInt(100e18)], {
+        account: player.account,
+      })
+
+      // Start and exit
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+      await tournament.write.exit({ account: player.account })
+
+      // End
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Creator collects (5% of 100 = 5)
+      const balanceBefore = await token.read.balanceOf([creator.account.address])
+      await tournament.write.collectCreatorFees({ account: creator.account })
+      const balanceAfter = await token.read.balanceOf([creator.account.address])
+
+      const creatorFee = balanceAfter - balanceBefore
+      assert.equal(creatorFee, BigInt(5e18), "Creator should receive 5% fee")
+    })
+
+    it("should allow platform to collect fees after tournament ends", async () => {
+      // Note: Platform fees are collected via TournamentFactory, not individual tournaments
+      // This test demonstrates the calculation is correct in the prize distribution
+      const tournament = await deployTournament({
+        startPlayerCount: 2,
+        duration: 100,
+        platformFeePercent: 3,
+        creatorFeePercent: 2,
+      })
+      const [, , player1, player2] = accounts
+
+      // Both join with 100 tokens (200 total)
+      await token.write.mint([player1.account.address, BigInt(200e18)])
+      await token.write.mint([player2.account.address, BigInt(200e18)])
+
+      await token.write.approve([tournament.address, BigInt(100e18)], {
+        account: player1.account,
+      })
+      await tournament.write.joinTournament([BigInt(100e18)], {
+        account: player1.account,
+      })
+
+      await token.write.approve([tournament.address, BigInt(100e18)], {
+        account: player2.account,
+      })
+      await tournament.write.joinTournament([BigInt(100e18)], {
+        account: player2.account,
+      })
+
+      // Start and both exit
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+      await tournament.write.exit({ account: player1.account })
+      await tournament.write.exit({ account: player2.account })
+
+      // End
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await tournament.write.updateStatus()
+
+      // Check tournament balance includes platform fees
+      const tournamentBalance = await token.read.balanceOf([tournament.address])
+
+      // Total: 200
+      // Platform fee (3%): 6
+      // Creator fee (2%): 4
+      // To winners: 190 (95 each)
+      // Tournament should hold: 6 (platform fee) + 4 (uncollected creator fee) = 10
+
+      console.log("Tournament balance before any claims:", tournamentBalance)
+
+      // Player 1 claims
+      const balance1Before = await token.read.balanceOf([player1.account.address])
+      await tournament.write.claimPrize({ account: player1.account })
+      const balance1After = await token.read.balanceOf([player1.account.address])
+      const prize1 = balance1After - balance1Before // Calculate the prize received
+
+      assert.equal(prize1, BigInt(95e18), "Each winner gets 95 tokens (200 - 3% - 2% = 190, split 2 ways)")
+
+      // Verify platform fee is held in contract
+      const finalTournamentBalance = await token.read.balanceOf([tournament.address])
+      console.log("Tournament balance after player1 claims:", finalTournamentBalance)
+
+      // Should have: platform fee (6) + creator fee (4) + player2 unclaimed prize (95) = 105
+      assert.equal(finalTournamentBalance, BigInt(105e18), "Platform fee should remain in contract")
+    })
+  })
+
+  describe("[complete flow]", () => {
+    it("should complete full tournament flow with status transitions, with prize distribution", async () => {
+      const [platformAdmin, creator, player1, player2] = accounts
+
+      // Deploy fresh tournament
+      const fullFlowTournament = await viem.deployContract("Tournament", [], {
+        libraries: {
+          TournamentLifecycle: lifecycleLib.address,
+          TournamentPlayerActions: playerActionsLib.address,
+          TournamentRefund: refundLib.address,
+          TournamentViews: viewsLib.address,
+        },
+      })
+
+      await registry.write.registerTournament([fullFlowTournament.address], {
+        account: platformAdmin.account,
+      })
+      let status = await fullFlowTournament.read.status()
+      assert.equal(status, TOURNAMENT_STATUS.Open, "Should be Open")
+
+      const block = await publicClient.getBlock()
+      const currentTime = Number(block.timestamp)
+
+      const params = {
+        stakeToken: token.address,
+        minStake: BigInt(10e18),
+        maxStake: BigInt(1000e18),
+        minPlayers: 2,
+        maxPlayers: 2,
+        startTimestamp: currentTime + 50,
+        duration: 100, // Short duration
+        startPlayerCount: 2,
+        startPoolAmount: 0n,
+        platformFeePercent: 1,
+        creatorFeePercent: 2,
+        coinConversionRate: 100,
+        initialLives: 3,
+        cardsPerType: 0, // No cards needed for exit
+        exitLivesRequired: 3,
+        decayAmount: 0, // No decay
+        decayInterval: 3600,
+        exitCostBasePercentBPS: 0, // No exit cost
+        exitCostCompoundRateBPS: 0,
+        exitCostInterval: 3600,
+        forfeitAllowed: true,
+        forfeitPenaltyType: 0,
+        forfeitMaxPenalty: 80,
+        forfeitMinPenalty: 10,
+      }
+
+      await fullFlowTournament.write.initialize([
+        params,
+        creator.account.address,
+        registry.address,
+        whitelist.address,
+        platformAdmin.account.address,
+      ])
+
+      // 2 players join with 100 tokens each (200 total)
+      await token.write.mint([player1.account.address, BigInt(200e18)])
+      await token.write.mint([player2.account.address, BigInt(200e18)])
+
+      await token.write.approve([fullFlowTournament.address, BigInt(100e18)], {
+        account: player1.account,
+      })
+      await fullFlowTournament.write.joinTournament([BigInt(100e18)], {
+        account: player1.account,
+      })
+
+      await token.write.approve([fullFlowTournament.address, BigInt(100e18)], {
+        account: player2.account,
+      })
+      await fullFlowTournament.write.joinTournament([BigInt(100e18)], {
+        account: player2.account,
+      })
+
+      // Start tournament
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [60],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await fullFlowTournament.write.updateStatus()
+
+      status = await fullFlowTournament.read.status()
+      assert.equal(status, TOURNAMENT_STATUS.Active, "Should be Active")
+
+      // Both players exit (become winners)
+      await fullFlowTournament.write.exit({ account: player1.account })
+      await fullFlowTournament.write.exit({ account: player2.account })
+
+      // End tournament (time passes)
+      await publicClient.transport.request({
+        method: "evm_increaseTime" as any,
+        params: [110],
+      })
+      await publicClient.transport.request({
+        method: "evm_mine" as any,
+        params: [],
+      })
+      await fullFlowTournament.write.updateStatus()
+
+      status = await fullFlowTournament.read.status()
+      assert.equal(status, TOURNAMENT_STATUS.Ended, "Should be Ended")
+
+      const creatorBalanceBefore = await token.read.balanceOf([creator.account.address])
+      await fullFlowTournament.write.collectCreatorFees({ account: creator.account })
+      const creatorBalanceAfter = await token.read.balanceOf([creator.account.address])
+      const creatorFee = creatorBalanceAfter - creatorBalanceBefore
+
+      assert.equal(creatorFee, BigInt(4e18), "Creator should receive 2% (4 tokens)")
+
+      // Winners claim prizes
+      // Total pool: 200 tokens
+      // Platform fee (1%): 2 tokens
+      // Creator fee (2%): 4 tokens
+      // Remaining for winners: 194 tokens
+      // Per winner (2 winners): 97 tokens each
+
+      const player1BalanceBefore = await token.read.balanceOf([player1.account.address])
+      await fullFlowTournament.write.claimPrize({ account: player1.account })
+      const player1BalanceAfter = await token.read.balanceOf([player1.account.address])
+      const player1Prize = player1BalanceAfter - player1BalanceBefore
+
+      const player2BalanceBefore = await token.read.balanceOf([player2.account.address])
+      await fullFlowTournament.write.claimPrize({ account: player2.account })
+      const player2BalanceAfter = await token.read.balanceOf([player2.account.address])
+      const player2Prize = player2BalanceAfter - player2BalanceBefore
+
+      console.log("Player 1 prize:", player1Prize)
+      console.log("Player 2 prize:", player2Prize)
+
+      // Each should get 97 tokens (194 / 2)
+      const expectedPrize = BigInt(97e18)
+      assert.equal(player1Prize, expectedPrize, "Player 1 should receive correct prize")
+      assert.equal(player2Prize, expectedPrize, "Player 2 should receive correct prize")
+    })
+  })
 })
