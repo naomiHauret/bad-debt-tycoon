@@ -231,7 +231,7 @@ Note: BPS = Basis Points, where 100 BPS = 1%. Used for precise percentage repres
 
 ### Core economic functions
 
-The `Tournament` contract should expose the following functions for querying economic state and validating exit requirements :
+The `Tournament` contract having limited space, we should expose the inner logic of following functions for querying economic state and validating exit requirements in a dedicated library, `TournamentCalculations`, which `Tournament` will import and call:
 
 `getCurrentCoins(address player)`
 
