@@ -55,12 +55,12 @@ You can also selectively run the Solidity or `node:test` tests:
 
 ```shell
 bun run test:solidity # or `bunx hardhat test solidity`
-run test:nodejs # or `bunx hardhat test nodejs`
+bun run test:nodejs # or `bunx hardhat test nodejs`
 ```
 
 #### Deployment
 
-Bad Debt Tycoon uses [Hardhat Ignition modules](https://hardhat.org/ignition/docs/getting-started#overview) to simplify contract deployments. Modules can be deployed to a locally simulated chain or to Arbitrum/Base Sepolia.
+Bad Debt Tycoon uses [Hardhat Ignition modules](https://hardhat.org/ignition/docs/getting-started#overview) to simplify contract deployments. Modules can be deployed to a locally simulated chain or to Arbitrum Sepolia /Base Sepolia.
 
 To run the deployment to a local chain:
 
