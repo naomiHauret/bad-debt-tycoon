@@ -2,6 +2,7 @@
 import assert from "node:assert/strict"
 import { before, describe, it } from "node:test"
 import { network } from "hardhat"
+import { FORFEIT_PENALTY } from "./../src/components/forfeit"
 import { TOURNAMENT_STATUS } from "./../src/components/tournament"
 
 describe("Tournament Lifecycle", async () => {
@@ -488,4 +489,449 @@ describe("Tournament Lifecycle", async () => {
     })
   })
 
+  describe("Player actions system", () => {
+    describe("Joining", () => {
+      it("Should allow player to enter open tournament", async () => {
+        const tournament = await deployTournament()
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+
+        const balanceBefore = await token.read.balanceOf([player.account.address])
+
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+
+        const balanceAfter = await token.read.balanceOf([player.account.address])
+        assert.equal(balanceBefore - balanceAfter, BigInt(50e18), "Stake should be transferred")
+
+        const playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 1, "Player count should be 1")
+      })
+
+      it("Should prevent from entering non-open tournament", async () => {
+        const tournament = await deployTournament({ maxPlayers: 1, startPlayerCount: 1 })
+        const [, , player1, player2] = accounts
+
+        // Player 1 joins and locks
+        await token.write.mint([player1.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player1.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player1.account,
+        })
+
+        const status = await tournament.read.status()
+        assert.equal(status, TOURNAMENT_STATUS.Locked, "Should be Locked")
+
+        // Player 2 tries to join locked tournament
+        await token.write.mint([player2.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player2.account,
+        })
+
+        await assert.rejects(
+          async () => {
+            await tournament.write.joinTournament([BigInt(50e18)], {
+              account: player2.account,
+            })
+          },
+          /InvalidStatus/,
+          "Should revert when trying to join non-open tournament",
+        )
+      })
+
+      it("Should prevent player from joining without required stake", async () => {
+        const tournament = await deployTournament({ minStake: BigInt(50e18) })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(30e18)], {
+          account: player.account,
+        })
+
+        await assert.rejects(
+          async () => {
+            await tournament.write.joinTournament([BigInt(30e18)], {
+              account: player.account,
+            })
+          },
+          /StakeTooLow/,
+          "Should revert when stake is below minimum",
+        )
+      })
+    })
+
+    describe("Withdrawing", () => {
+      it("should let player withdraw before tournament starts and get their stake back fully", async () => {
+        const tournament = await deployTournament()
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+
+        const balanceBefore = await token.read.balanceOf([player.account.address])
+
+        await tournament.write.claimRefund({ account: player.account })
+
+        const balanceAfter = await token.read.balanceOf([player.account.address])
+        assert.equal(balanceAfter - balanceBefore, BigInt(50e18), "Should get full stake back")
+
+        const playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 0, "Player count should be 0 after withdrawal")
+      })
+
+      it("should allow player to enter/withdraw back and forth while tournament is opened", async () => {
+        const tournament = await deployTournament()
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(300e18)])
+
+        // Join
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+        let playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 1)
+
+        // Withdraw
+        await tournament.write.claimRefund({ account: player.account })
+        playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 0)
+
+        // Join again
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+        playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 1)
+
+        // Withdraw again
+        await tournament.write.claimRefund({ account: player.account })
+        playerCount = await tournament.read.playerCount()
+        assert.equal(playerCount, 0, "Should be able to join/withdraw multiple times")
+      })
+
+      it("should not be possible after tournament starts", async () => {
+        const tournament = await deployTournament({ startPlayerCount: 1 })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+
+        // Start tournament
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        const status = await tournament.read.status()
+        assert.equal(status, TOURNAMENT_STATUS.Active, "Should be Active")
+
+        await assert.rejects(
+          async () => {
+            await tournament.write.claimRefund({ account: player.account })
+          },
+          /CannotRefundAfterStart/,
+          "Should not allow refund after tournament starts",
+        )
+      })
+
+      it("should only claim player's stake", async () => {
+        const tournament = await deployTournament()
+        const [, , player1, player2] = accounts
+
+        // Both players join
+        await token.write.mint([player1.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(30e18)], {
+          account: player1.account,
+        })
+        await tournament.write.joinTournament([BigInt(30e18)], {
+          account: player1.account,
+        })
+
+        await token.write.mint([player2.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(70e18)], {
+          account: player2.account,
+        })
+        await tournament.write.joinTournament([BigInt(70e18)], {
+          account: player2.account,
+        })
+
+        // Player 1 withdraws
+        const balanceBefore = await token.read.balanceOf([player1.account.address])
+        await tournament.write.claimRefund({ account: player1.account })
+        const balanceAfter = await token.read.balanceOf([player1.account.address])
+
+        assert.equal(balanceAfter - balanceBefore, BigInt(30e18), "Should only get their own stake, not others'")
+      })
+    })
+
+    describe("Forfeiting", () => {
+      it("Fixed penalty should slash the player's stake with a fixed % (same for all players)", async () => {
+        const tournament = await deployTournament({
+          startPlayerCount: 1,
+          forfeitPenaltyType: FORFEIT_PENALTY.Fixed,
+          forfeitMaxPenalty: 50, // 50% fixed
+          forfeitMinPenalty: 50,
+        })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(100e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(100e18)], {
+          account: player.account,
+        })
+
+        // Start tournament
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        const balanceBefore = await token.read.balanceOf([player.account.address])
+
+        await tournament.write.forfeit({ account: player.account })
+
+        const balanceAfter = await token.read.balanceOf([player.account.address])
+        const refund = balanceAfter - balanceBefore
+
+        // Should get 50% back (50 tokens)
+        assert.equal(refund, BigInt(50e18), "Should receive 50% refund with fixed penalty")
+      })
+
+      it("Time based penalty should slash the player's stake with an escalating % (varies on forfeiting timestamp)", async () => {
+        const tournament = await deployTournament({
+          startPlayerCount: 1,
+          duration: 1000,
+          forfeitPenaltyType: FORFEIT_PENALTY.TimeBased, // TimeRemaining
+          forfeitMaxPenalty: 80,
+          forfeitMinPenalty: 10,
+        })
+        const [, , player1, player2] = accounts
+
+        // Player 1 joins
+        await token.write.mint([player1.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(100e18)], {
+          account: player1.account,
+        })
+        await tournament.write.joinTournament([BigInt(100e18)], {
+          account: player1.account,
+        })
+
+        // Start tournament
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        // Player 1 forfeits early (high penalty)
+        const balance1Before = await token.read.balanceOf([player1.account.address])
+        await tournament.write.forfeit({ account: player1.account })
+        const balance1After = await token.read.balanceOf([player1.account.address])
+        const refund1 = balance1After - balance1Before
+
+        // Deploy new tournament for player 2
+        const tournament2 = await deployTournament({
+          startPlayerCount: 1,
+          duration: 1000,
+          forfeitPenaltyType: FORFEIT_PENALTY.TimeBased,
+          forfeitMaxPenalty: 80,
+          forfeitMinPenalty: 10,
+        })
+
+        await token.write.mint([player2.account.address, BigInt(100e18)])
+        await token.write.approve([tournament2.address, BigInt(100e18)], {
+          account: player2.account,
+        })
+        await tournament2.write.joinTournament([BigInt(100e18)], {
+          account: player2.account,
+        })
+
+        // Start
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament2.write.updateStatus()
+
+        // Wait most of the duration
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [900],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+
+        // Player 2 forfeits late (lower penalty)
+        const balance2Before = await token.read.balanceOf([player2.account.address])
+        await tournament2.write.forfeit({ account: player2.account })
+        const balance2After = await token.read.balanceOf([player2.account.address])
+        const refund2 = balance2After - balance2Before
+
+        console.log("Early forfeit refund:", refund1)
+        console.log("Late forfeit refund:", refund2)
+
+        assert.ok(refund2 > refund1, "Late forfeit should get more refund than early forfeit")
+      })
+
+      it("Time based penalty % should stay within defined bounds", async () => {
+        const tournament = await deployTournament({
+          startPlayerCount: 1,
+          duration: 1000,
+          forfeitPenaltyType: FORFEIT_PENALTY.TimeBased,
+          forfeitMaxPenalty: 80, // Max 80% penalty
+          forfeitMinPenalty: 10, // Min 10% penalty
+        })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(100e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(100e18)], {
+          account: player.account,
+        })
+
+        // Start
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        // Forfeit immediately (should get min penalty = 10%, so 90 tokens back)
+        const balanceBefore = await token.read.balanceOf([player.account.address])
+        await tournament.write.forfeit({ account: player.account })
+        const balanceAfter = await token.read.balanceOf([player.account.address])
+        const refund = balanceAfter - balanceBefore
+
+        // Should get at least 20% back (100 - 80 max penalty)
+        assert.ok(refund >= BigInt(20e18), "Refund should be at least 20% (max 80% penalty)")
+        // Should get at most 90% back (100 - 10 min penalty)
+        assert.ok(refund <= BigInt(90e18), "Refund should be at most 90% (min 10% penalty)")
+      })
+    })
+
+    describe("Exiting", () => {
+      it("should allow player to exit when conditions met", async () => {
+        const tournament = await deployTournament({
+          startPlayerCount: 1,
+          exitLivesRequired: 5,
+          initialLives: 5,
+        })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+
+        // Start tournament
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        // Exit
+        await tournament.write.exit({ account: player.account })
+
+        const winners = await tournament.read.getWinners()
+        assert.equal(winners.length, 1, "Should have 1 winner")
+        assert.equal(winners[0].toUpperCase(), player.account.address.toUpperCase(), "Player should be winner")
+      })
+
+      it("should not allow player to exit when conditions are not met", async () => {
+        const tournament = await deployTournament({
+          startPlayerCount: 1,
+          exitLivesRequired: 10,
+          initialLives: 5, // Not enough lives
+        })
+        const player = accounts[2]
+
+        await token.write.mint([player.account.address, BigInt(100e18)])
+        await token.write.approve([tournament.address, BigInt(50e18)], {
+          account: player.account,
+        })
+        await tournament.write.joinTournament([BigInt(50e18)], {
+          account: player.account,
+        })
+
+        // Start tournament
+        await publicClient.transport.request({
+          method: "evm_increaseTime" as any,
+          params: [110],
+        })
+        await publicClient.transport.request({
+          method: "evm_mine" as any,
+          params: [],
+        })
+        await tournament.write.updateStatus()
+
+        await assert.rejects(
+          async () => {
+            await tournament.write.exit({ account: player.account })
+          },
+          /CannotExit/,
+          "Should not allow exit when conditions not met",
+        )
+      })
+    })
+  })
 })
