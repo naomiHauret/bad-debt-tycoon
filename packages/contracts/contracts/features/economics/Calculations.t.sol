@@ -12,21 +12,19 @@ contract CalculationsTest is Test {
     uint8 minPenalty;
     uint16 exitCostBasePercentBPS;
     uint16 exitCostCompoundRateBPS;
-    uint256 exitCostInterval;
     uint256 decayAmount;
-    uint256 decayInterval;
+    uint32 gameInterval;
 
     function setUp() public {
         wrapper = new WrapperCalculations();
         initialCoins = 400;
         stakeAmount = 1000;
+        gameInterval = 1200; // 20 min interval (decay)
         // exit costs
         exitCostBasePercentBPS = 5000; // 50% base
         exitCostCompoundRateBPS = 1000; // 10% compound rate
-        exitCostInterval = 3600; // 1 hour interval (exit cost)
         // decay
         decayAmount = 10; // 10 coins per interval
-        decayInterval = 1200; // 20 min interval (decay)
         // forfeit
         maxPenalty = 80;
         minPenalty = 20;
@@ -39,30 +37,30 @@ contract CalculationsTest is Test {
         // With zero initial coins
         uint256 cost = wrapper.calculateExitCost(
             0,
-            block.timestamp,
+            uint32(block.timestamp),
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
         assertEq(cost, 0);
 
         // With zero base percentage
         cost = wrapper.calculateExitCost(
             initialCoins,
-            block.timestamp,
+            uint32(block.timestamp),
             0,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
         assertEq(cost, 0);
 
         // With zero compound rate (should still have base cost)
         cost = wrapper.calculateExitCost(
             initialCoins,
-            block.timestamp,
+            uint32(block.timestamp),
             exitCostBasePercentBPS,
             0,
-            exitCostInterval
+            gameInterval
         );
         assertEq(cost, 200); // Just base cost
     }
@@ -70,15 +68,15 @@ contract CalculationsTest is Test {
     // Should only apply base percent exit cost to initial coin amount at H0 (no compounding)
     function test_CalculateExitCost_AtStart() public {
         //  400 initial coins, 50% base (5000 BPS), at hour 0
-        uint256 startTime = block.timestamp;
-        uint256 actualStartTime = startTime;
+        uint32 startTime = uint32(block.timestamp);
+        uint32 actualStartTime = startTime;
 
         uint256 exitCost = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
         // At hour 0: baseCost = 200, multiplier = 10000, exitCost = 200
@@ -87,32 +85,32 @@ contract CalculationsTest is Test {
 
     // Should apply exitCostCompoundRateBPS compound after each interval
     function test_CalculateExitCost_ApplyAfterEachInterval() public {
-        uint256 startTime = block.timestamp;
-        uint256 actualStartTime = startTime;
+        uint32 startTime = uint32(block.timestamp);
+        uint32 actualStartTime = startTime;
 
         // Fast forward 1 interval
-        vm.warp(block.timestamp + exitCostInterval);
+        vm.warp(block.timestamp + gameInterval);
 
         uint256 exitCost = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
         // At hour 1: intervals = 1, multiplier = 11000, exitCost = 220
         assertEq(exitCost, 220);
 
         // Fast forward another interval
-        vm.warp(block.timestamp + exitCostInterval);
+        vm.warp(block.timestamp + gameInterval);
 
         exitCost = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
         // At hour 2: intervals = 2, multiplier = 12000, exitCost = 240
@@ -121,16 +119,16 @@ contract CalculationsTest is Test {
 
     // Should ignore partial intervals
     function test_CalculateExitCost_IgnorePartialInterval() public {
-        uint256 startTime = block.timestamp;
+        uint32 startTime = uint32(block.timestamp);
 
-        // Fast forward a partial interval
-        vm.warp(block.timestamp + 3000);
+        // Fast forward a partial interval (less than gameInterval)
+        vm.warp(block.timestamp + gameInterval - 1);
         uint256 exitCost = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
         // With 0 complete intervals, should be just the base cost
@@ -142,40 +140,51 @@ contract CalculationsTest is Test {
 
     // Costs should grow over time
     function test_CalculateExitCost_CompoundGrowth() public {
-        uint256 startTime = block.timestamp;
-        vm.warp(startTime + 3600); // 1 hour
-        uint256 cost1h = wrapper.calculateExitCost(
+        uint32 startTime = uint32(block.timestamp);
+
+        // Use multiples of gameInterval for predictable results
+        vm.warp(startTime + gameInterval * 1); // 1 interval (1200 seconds)
+        uint256 cost1interval = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
-        vm.warp(startTime + 7200); // 2 hours
-        uint256 cost2h = wrapper.calculateExitCost(
+        vm.warp(startTime + gameInterval * 2); // 2 intervals (2400 seconds)
+        uint256 cost2intervals = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
-        vm.warp(startTime + 10800); // 3 hours
-        uint256 cost3h = wrapper.calculateExitCost(
+        vm.warp(startTime + gameInterval * 3); // 3 intervals (3600 seconds)
+        uint256 cost3intervals = wrapper.calculateExitCost(
             initialCoins,
             startTime,
             exitCostBasePercentBPS,
             exitCostCompoundRateBPS,
-            exitCostInterval
+            gameInterval
         );
 
-        assertLt(cost1h, cost2h, "Cost should increase from hour 1 to 2");
-        assertLt(cost2h, cost3h, "Cost should increase from hour 2 to 3");
+        assertLt(
+            cost1interval,
+            cost2intervals,
+            "Cost should increase from interval 1 to 2"
+        );
+        assertLt(
+            cost2intervals,
+            cost3intervals,
+            "Cost should increase from interval 2 to 3"
+        );
 
-        assertEq(cost1h, 220); // baseCost=200, +10%
-        assertEq(cost2h, 240); // baseCost=200, +20%
-        assertEq(cost3h, 260); // baseCost=200, +30%
+        // baseCost = 200, compoundRate = 10%
+        assertEq(cost1interval, 220); // baseCost * (1 + 0.1 * 1) = 200 * 1.1 = 220
+        assertEq(cost2intervals, 240); // baseCost * (1 + 0.1 * 2) = 200 * 1.2 = 240
+        assertEq(cost3intervals, 260); // baseCost * (1 + 0.1 * 3) = 200 * 1.3 = 260
     }
 
     // -- calculateCurrentCoins
@@ -184,9 +193,9 @@ contract CalculationsTest is Test {
     function test_CalculateCurrentCoins_NoDecayBeforeElapsedInterval() public {
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             initialCoins, // storedCoins
-            block.timestamp, // lastDecayTimestamp (now)
+            uint32(block.timestamp), // lastDecayTimestamp (now)
             decayAmount,
-            decayInterval
+            gameInterval
         );
 
         assertEq(currentCoins, initialCoins);
@@ -196,16 +205,16 @@ contract CalculationsTest is Test {
     function test_CalculateCurrentCoins_ApplyDecayAfterElapsedInterval()
         public
     {
-        uint256 lastDecay = block.timestamp;
+        uint32 lastDecay = uint32(block.timestamp);
 
         // Fast forward 20 minutes (1 interval)
-        vm.warp(block.timestamp + decayInterval);
+        vm.warp(block.timestamp + gameInterval);
 
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             initialCoins,
             lastDecay,
             decayAmount,
-            decayInterval
+            gameInterval
         );
 
         assertEq(currentCoins, initialCoins - decayAmount);
@@ -213,16 +222,16 @@ contract CalculationsTest is Test {
 
     // Should apply decay equivalent to decayAmount multiplied by elapsed interval amount
     function test_CalculateCurrentCoins_DecaysWithEachInterval() public {
-        uint256 lastDecay = block.timestamp;
+        uint32 lastDecay = uint32(block.timestamp);
 
         // Fast forward 3 intervals
-        vm.warp(block.timestamp + decayInterval * 3);
+        vm.warp(block.timestamp + gameInterval * 3);
 
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             initialCoins,
             lastDecay,
             decayAmount,
-            decayInterval
+            gameInterval
         );
 
         // 3 intervals * 10 decay = 30 coins lost
@@ -233,16 +242,16 @@ contract CalculationsTest is Test {
     function test_CalculateCurrentCoins_ShouldNotApplyDecayWithPartialInterval()
         public
     {
-        uint256 lastDecay = block.timestamp;
+        uint32 lastDecay = uint32(block.timestamp);
 
         // Fast forward just before interval elapses
-        vm.warp(block.timestamp + decayInterval - 1);
+        vm.warp(block.timestamp + gameInterval - 1);
 
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             initialCoins,
             lastDecay,
             decayAmount,
-            decayInterval
+            gameInterval
         );
 
         assertEq(currentCoins, initialCoins);
@@ -250,16 +259,16 @@ contract CalculationsTest is Test {
 
     // Should not decay player coins below 0
     function test_CalculateCurrentCoins_ClampToPlayerCoinsToZero() public {
-        uint256 lastDecay = block.timestamp;
+        uint32 lastDecay = uint32(block.timestamp);
 
         // Fast forward enough to decay all coins
-        vm.warp(block.timestamp + decayInterval * 10);
+        vm.warp(block.timestamp + gameInterval * 10);
 
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             1,
             lastDecay,
             decayAmount,
-            decayInterval
+            gameInterval
         );
 
         assertEq(currentCoins, 0);
@@ -267,7 +276,7 @@ contract CalculationsTest is Test {
 
     function test_CalculateCurrentCoins_WithZeroAsParams() public {
         // Decay should clamp to 0
-        uint256 baseTime = 1000000;
+        uint32 baseTime = 1000000;
 
         uint256 currentCoins = wrapper.calculateCurrentCoins(
             100,
@@ -286,18 +295,18 @@ contract CalculationsTest is Test {
         // With decayAmount = 0, no decay should apply
         currentCoins = wrapper.calculateCurrentCoins(
             400,
-            block.timestamp,
+            uint32(block.timestamp),
             0,
-            decayInterval
+            gameInterval
         );
         assertEq(currentCoins, 400);
 
         // With T=0 no decay should apply
         currentCoins = wrapper.calculateCurrentCoins(
             400,
-            block.timestamp,
+            uint32(block.timestamp),
             10,
-            decayInterval
+            gameInterval
         );
         assertEq(currentCoins, 400);
     }
@@ -308,7 +317,7 @@ contract CalculationsTest is Test {
     function test_CalculateForfeitPenalty_FixedType() public {
         uint256 penalty = wrapper.calculateForfeitPenalty(
             stakeAmount,
-            block.timestamp + 3600, // end time
+            uint32(block.timestamp + 3600), // end time
             3600, // duration (1 hour total)
             0, // Fixed penalty (fixed % of stake)
             30, // maxPenalty,
@@ -321,7 +330,7 @@ contract CalculationsTest is Test {
 
     // Should calculate penalty in real time when penalty is time based
     function test_CalculateForfeitPenalty_TimeBased_RealTime() public {
-        uint256 endTime = block.timestamp + 3600;
+        uint32 endTime = uint32(block.timestamp + 3600);
 
         // Fast forward 30 minutes (halfway)
         vm.warp(block.timestamp + 1800);
@@ -344,7 +353,7 @@ contract CalculationsTest is Test {
     function test_CalculateForfeitPenalty_TimeBased_WithinRange_MinClamp()
         public
     {
-        uint256 endTime = block.timestamp + 3600;
+        uint32 endTime = uint32(block.timestamp + 3600);
 
         // Fast forward to end
         vm.warp(endTime);
@@ -367,7 +376,7 @@ contract CalculationsTest is Test {
     function test_CalculateForfeitPenalty_TimeBased_WithinRange_MaxClamp()
         public
     {
-        uint256 endTime = block.timestamp + 3600;
+        uint32 endTime = uint32(block.timestamp + 3600);
 
         uint256 penalty = wrapper.calculateForfeitPenalty(
             1000,
@@ -393,7 +402,7 @@ contract CalculationsTest is Test {
         vm.assume(_minPenalty <= _maxPenalty);
         uint256 penalty = wrapper.calculateForfeitPenalty(
             _stakeAmount,
-            block.timestamp + 3600,
+            uint32(block.timestamp + 3600),
             3600,
             1,
             _maxPenalty,
@@ -413,7 +422,7 @@ contract CalculationsTest is Test {
         // With zero (min/max), penalty should be 0
         uint256 penalty = wrapper.calculateForfeitPenalty(
             1000,
-            block.timestamp + 3600,
+            uint32(block.timestamp + 3600),
             3600,
             0,
             0,
@@ -424,7 +433,7 @@ contract CalculationsTest is Test {
         // With 100 (min/max), penalty should be entire stake
         penalty = wrapper.calculateForfeitPenalty(
             1000,
-            block.timestamp + 3600,
+            uint32(block.timestamp + 3600),
             3600,
             0,
             100,
@@ -502,41 +511,60 @@ contract CalculationsTest is Test {
     // Game economy should collapse given certain params
     // See docs
     function test_EconomicCollapse() public {
-        uint256 startTime = block.timestamp;
+        uint32 startTime = uint32(block.timestamp);
 
-        vm.warp(startTime + 4 * 3600);
+        // Fast forward 4 hours worth of gameIntervals
+        // gameInterval = 1200 seconds (20 min)
+        // 4 hours = 240 minutes = 12 intervals
+        vm.warp(startTime + gameInterval * 12);
 
         uint256 coinsAfterDecay = wrapper.calculateCurrentCoins(
             400,
             startTime,
             10,
-            1200
+            gameInterval
         );
         uint256 exitCost = wrapper.calculateExitCost(
             400,
             startTime,
             5000,
             1000,
-            3600
+            gameInterval
         );
 
-        // H4: coins=280, exitCost=280
-        assertEq(coinsAfterDecay, 280, "Coins should be 280 after 4 hours");
-        assertEq(exitCost, 280, "Exit cost should be 280 after 4 hours");
+        // After 12 intervals:
+        // coins = 400 - (10 * 12) = 280
+        // exitCost = 200 * (1 + 0.1 * 12) = 200 * 2.2 = 440
+        assertEq(
+            coinsAfterDecay,
+            280,
+            "Coins should be 280 after 12 intervals"
+        );
+        assertEq(exitCost, 440, "Exit cost should be 440 after 12 intervals");
 
-        vm.warp(startTime + 5 * 3600); // H5
+        // Fast forward to 15 intervals
+        vm.warp(startTime + gameInterval * 15);
         coinsAfterDecay = wrapper.calculateCurrentCoins(
             400,
             startTime,
             10,
-            1200
+            gameInterval
         );
-        exitCost = wrapper.calculateExitCost(400, startTime, 5000, 1000, 3600);
+        exitCost = wrapper.calculateExitCost(
+            400,
+            startTime,
+            5000,
+            1000,
+            gameInterval
+        );
 
+        // After 15 intervals:
+        // coins = 400 - (10 * 15) = 250
+        // exitCost = 200 * (1 + 0.1 * 15) = 200 * 2.5 = 500
         assertLt(
             coinsAfterDecay,
             exitCost,
-            "At hour 5, without any actions, should not be able to exit"
+            "At 15 intervals, without any actions, should not be able to exit"
         );
     }
 }
@@ -545,10 +573,10 @@ contract CalculationsTest is Test {
 contract WrapperCalculations {
     function calculateExitCost(
         uint256 initialCoins,
-        uint256 actualStartTime,
+        uint32 actualStartTime,
         uint16 exitCostBasePercentBPS,
         uint16 exitCostCompoundRateBPS,
-        uint256 exitCostInterval
+        uint32 gameInterval
     ) external view returns (uint256) {
         return
             TournamentCalculations.calculateExitCost(
@@ -556,29 +584,29 @@ contract WrapperCalculations {
                 actualStartTime,
                 exitCostBasePercentBPS,
                 exitCostCompoundRateBPS,
-                exitCostInterval
+                gameInterval
             );
     }
 
     function calculateCurrentCoins(
         uint256 storedCoins,
-        uint256 lastDecayTimestamp,
+        uint32 lastDecayTimestamp,
         uint256 decayAmount,
-        uint256 decayInterval
+        uint32 gameInterval
     ) external view returns (uint256) {
         return
             TournamentCalculations.calculateCurrentCoins(
                 storedCoins,
                 lastDecayTimestamp,
                 decayAmount,
-                decayInterval
+                gameInterval
             );
     }
 
     function calculateForfeitPenalty(
         uint256 stakeAmount,
-        uint256 endTime,
-        uint256 duration,
+        uint32 endTime,
+        uint32 duration,
         uint8 forfeitPenaltyType,
         uint8 forfeitMaxPenalty,
         uint8 forfeitMinPenalty

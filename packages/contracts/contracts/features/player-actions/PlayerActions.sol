@@ -11,13 +11,15 @@ library TournamentPlayerActions {
     event PlayerJoined(
         address indexed player,
         uint256 stakeAmount,
-        uint256 initialCoins
+        uint256 initialCoins,
+        uint32 exitTime
     );
-    event PlayerExited(address indexed player, uint256 exitTime);
+    event PlayerExited(address indexed player, uint32 exitTime);
     event PlayerForfeited(
         address indexed player,
         uint256 penaltyAmount,
-        uint256 refundAmount
+        uint256 refundAmount,
+        uint32 exitTime
     );
     event DecayApplied(
         address indexed player,
@@ -58,13 +60,18 @@ library TournamentPlayerActions {
         player.initialCoins = initialCoins;
         player.coins = initialCoins;
         player.stakeAmount = stakeAmount;
-        player.lastDecayTimestamp = block.timestamp;
+        player.lastDecayTimestamp = uint32(block.timestamp);
         player.lives = initialLives;
         player.totalCards = cardsPerType * 3;
         player.status = TournamentCore.PlayerStatus.Active;
         player.exists = true;
 
-        emit PlayerJoined(sender, stakeAmount, initialCoins);
+        emit PlayerJoined(
+            sender,
+            stakeAmount,
+            initialCoins,
+            uint32(block.timestamp)
+        );
     }
 
     function processExit(
@@ -72,7 +79,7 @@ library TournamentPlayerActions {
         address sender
     ) external {
         player.status = TournamentCore.PlayerStatus.Exited;
-        emit PlayerExited(sender, block.timestamp);
+        emit PlayerExited(sender, uint32(block.timestamp));
     }
 
     function processForfeit(
@@ -85,17 +92,22 @@ library TournamentPlayerActions {
         player.status = TournamentCore.PlayerStatus.Forfeited;
 
         IERC20(stakeToken).safeTransfer(sender, refundAmount);
-        emit PlayerForfeited(sender, penaltyAmount, refundAmount);
+        emit PlayerForfeited(
+            sender,
+            penaltyAmount,
+            refundAmount,
+            uint32(block.timestamp)
+        );
     }
 
     function applyDecay(
         TournamentCore.PlayerResources storage player,
         address sender,
         uint256 decayAmount,
-        uint256 decayInterval
+        uint32 gameInterval
     ) external {
         uint256 intervalsPassed = (block.timestamp -
-            player.lastDecayTimestamp) / decayInterval;
+            player.lastDecayTimestamp) / gameInterval;
 
         if (intervalsPassed > 0) {
             uint256 totalDecay = decayAmount * intervalsPassed;
@@ -109,7 +121,7 @@ library TournamentPlayerActions {
                 player.coins = 0;
             }
 
-            player.lastDecayTimestamp = block.timestamp;
+            player.lastDecayTimestamp = uint32(block.timestamp);
             emit DecayApplied(sender, actualDecay, player.coins);
         }
     }

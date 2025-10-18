@@ -46,6 +46,8 @@ library TournamentLifecycle {
         registry.updateTournamentStatus(TournamentCore.Status.Active);
         emit TournamentStarted(actualStartTime, endTime);
 
+        //        return (actualStartTime, endTime, exitWindowStart);
+
         return (actualStartTime, endTime);
     }
 
@@ -80,7 +82,7 @@ library TournamentLifecycle {
 
     function checkAndTransition(
         TournamentCore.Status currentStatus,
-        TournamentCore.TournamentParams memory params,
+        TournamentCore.Params memory params,
         uint16 playerCount,
         uint256 totalStaked,
         TournamentRegistry registry

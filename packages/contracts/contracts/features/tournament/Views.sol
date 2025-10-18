@@ -8,7 +8,7 @@ library TournamentViews {
     function getCurrentCoins(
         TournamentCore.PlayerResources memory player,
         uint256 decayAmount,
-        uint256 decayInterval
+        uint32 gameInterval
     ) external view returns (uint256) {
         if (!player.exists) return 0;
         return
@@ -16,7 +16,7 @@ library TournamentViews {
                 player.coins,
                 player.lastDecayTimestamp,
                 decayAmount,
-                decayInterval
+                gameInterval
             );
     }
 
@@ -26,7 +26,7 @@ library TournamentViews {
         uint32 actualStartTime,
         uint16 exitCostBasePercentBPS,
         uint16 exitCostCompoundRateBPS,
-        uint256 exitCostInterval
+        uint32 gameInterval
     ) external view returns (uint256) {
         if (status != TournamentCore.Status.Active) return 0;
         if (!player.exists) return 0;
@@ -37,7 +37,7 @@ library TournamentViews {
                 actualStartTime,
                 exitCostBasePercentBPS,
                 exitCostCompoundRateBPS,
-                exitCostInterval
+                gameInterval
             );
     }
 

@@ -19,13 +19,14 @@ contract Tournament is Initializable {
     bool public emergencyCancelled;
 
     TournamentTokenWhitelist public tokenWhitelist;
-    TournamentCore.TournamentParams internal params;
+    TournamentCore.Params internal params;
     address public creator;
     TournamentRegistry public registry;
 
     TournamentCore.Status public status;
     uint32 public actualStartTime;
     uint32 public endTime;
+    uint32 public exitWindowStart;
     uint16 public playerCount;
     uint256 public totalStaked;
     uint256 public totalForfeitPenalties;
@@ -40,7 +41,7 @@ contract Tournament is Initializable {
     event CreatorFeesCollected(address indexed creator, uint256 amount);
     event EmergencyCancellation(
         address indexed platformAdmin,
-        uint256 calledAtTime
+        uint32 calledAtTime
     );
 
     error EmergencyCancelled();
@@ -58,6 +59,7 @@ contract Tournament is Initializable {
     error NotWinner();
     error AlreadyClaimed();
     error InvalidStatus();
+    error NoWinners();
 
     modifier notEmergencyCancelled() {
         if (emergencyCancelled) revert EmergencyCancelled();
@@ -79,7 +81,7 @@ contract Tournament is Initializable {
             players[msg.sender],
             msg.sender,
             params.decayAmount,
-            params.decayInterval
+            params.gameInterval
         );
         _;
     }
@@ -147,7 +149,7 @@ contract Tournament is Initializable {
     }
 
     function initialize(
-        TournamentCore.TournamentParams calldata _params,
+        TournamentCore.Params calldata _params,
         address _creator,
         address _registry,
         address _whitelist,
@@ -169,7 +171,7 @@ contract Tournament is Initializable {
         emergencyCancelled = true;
         status = TournamentCore.Status.Cancelled;
         TournamentLifecycle.emergencyCancel(registry, platformAdmin);
-        emit EmergencyCancellation(platformAdmin, block.timestamp);
+        emit EmergencyCancellation(platformAdmin, uint32(block.timestamp));
     }
 
     function joinTournament(
@@ -263,7 +265,9 @@ contract Tournament is Initializable {
 
     function claimPrize() external onlyPlayer autoEndIfTimeUp {
         if (status != TournamentCore.Status.Ended) revert InvalidStatus();
-
+        if (winners.length == 0) {
+            revert NoWinners();
+        }
         TournamentCore.PlayerResources storage player = players[msg.sender];
         if (player.status == TournamentCore.PlayerStatus.PrizeClaimed)
             revert AlreadyClaimed();
@@ -347,7 +351,7 @@ contract Tournament is Initializable {
             TournamentViews.getCurrentCoins(
                 players[player],
                 params.decayAmount,
-                params.decayInterval
+                params.gameInterval
             );
     }
 
@@ -359,7 +363,7 @@ contract Tournament is Initializable {
                 actualStartTime,
                 params.exitCostBasePercentBPS,
                 params.exitCostCompoundRateBPS,
-                params.exitCostInterval
+                params.gameInterval
             );
     }
 
@@ -411,11 +415,7 @@ contract Tournament is Initializable {
         return playerCount;
     }
 
-    function getParams()
-        external
-        view
-        returns (TournamentCore.TournamentParams memory)
-    {
+    function getParams() external view returns (TournamentCore.Params memory) {
         return params;
     }
 
