@@ -20,7 +20,6 @@ I want to <strong>define immutable, verifiable tournament rules</strong> includi
 - Stablecoin to stake (from whitelist: PYUSD, USDC, GHO)
 
 - Stake
-
   - Minimum stake (optional, default to 0)
   - Maximum stake (optional, must be >= minStake if set)
 
@@ -35,10 +34,11 @@ At least ONE condition must be enabled.
   - Amount: number of coins lost per interval (absolute value) (eg 6 = players will lose 6 coins every interval)
   - Rate: Time between decay applications (in seconds) ; (eg: 1200 = decay applies every 1200 seconds aka 20 minutes) (minimum: 60sec)
 
-Example: `decayAmount: 10`, `decayInterval: 1200` = Players lose 10 coins every 20 minutes
+Example: `decayAmount: 10`, `gameInterval: 1200` = Players lose 10 coins every 20 minutes
+
+> The game interval used in decay and exit costs calculation is the same.
 
 - Player initial resources:
-
   - Lives amount (eg 5)
   - Cards per type (eg 10 rock, 10 paper, 10 scissors)
   - Coin conversion rate (eg 1 PYUSD = 100 coins)
@@ -46,16 +46,13 @@ Example: `decayAmount: 10`, `decayInterval: 1200` = Players lose 10 coins every 
 - Exit conditions:
 - Minimum lives required (eg 3)
 - Exit cost formula parameters (pay attention, there's a lot...):
-
   - 1. Base cost % in BPS
-
     - Validation: Must be > 0 and <= 10000 BPS (100%)
     - Note: 100 BPS = 1%, so 5000 BPS = 50%
     - This is the initial exit cost as % of player's initial coins (in BPS)
     - Example: `5000` BPS = 50% of initial coins
 
   - 2. Interval between cost increases (in seconds) (must be > 60)
-
     - Example: `3600` = cost grows every hour
 
   - 3. Growth rate per interval (in BPS)
@@ -64,7 +61,7 @@ Example: `decayAmount: 10`, `decayInterval: 1200` = Players lose 10 coins every 
 
 _This might be a bit of a mind bender, so here's a quick example of how the exit cost formula parameters work together:_
 
-For 400 initial coins with `base: 5000 BPS`, `rate: 1000 BPS`, `interval: 3600s`:
+For 400 initial coins with `base: 5000 BPS`, `rate: 1000 BPS`, `gameInterval: 3600s`:
 
 - Hour 0: 200 coins (50%)
 - Hour 1: 220 coins (+10%)
@@ -210,24 +207,41 @@ THEN transaction reverts with "Player not found"
 
 ### Exit (standard)
 
-**As a player**
-I want to **exit the tournament when I meet all requirements**,
-So that I can **secure my position as a winner**.
+#### Exit window
+
+**As the game system**,
+I want to **only allow exits during the final game interval**,
+So that **players must stay engaged throughout the tournament**.
 
 ```
-GIVEN a tournament is in "Active" status
-  AND I am an active player
-WHEN I call `Tournament.exit()`
-THEN the following conditions must ALL be met:
-  - lives >= `exitLivesRequired`
-  - cards[ROCK] == 0 AND cards[PAPER] == 0 AND cards[SCISSORS] == 0
-  - coins >= calculateExitCost() (compounds based on time elapsed)
-  - debt == 0
-THEN I am marked as `hasExited = true`
-  AND I am added to winners list
-  AND `PlayerExited(player, exitTime)` event is emitted
-  AND IF all players have exited/forfeited
-    THEN tournament ends early
+GIVEN a tournament is active
+  AND exitWindowStart = endTime - gameInterval
+WHEN a player attempts to exit
+  AND block.timestamp < exitWindowStart
+THEN the transaction reverts with "Exit window not open yet"
+  AND the player must wait until the exit window opens
+```
+
+**As a player**,
+I want to **know when the exit window opens**,
+So that **I can prepare my resources accordingly**.
+
+```
+GIVEN a tournament is active
+WHEN I query the exit window start time
+THEN the contract returns exitWindowStart timestamp
+  AND I can calculate: exitWindowStart = endTime - gameInterval
+  AND I can view this in the UI as countdown
+```
+
+**As the game system**,
+I want to **ensure the game lasts long enough to give the players a chance to exit**,
+So that **the game is (relatively) fair**.
+
+```
+GIVEN I am attempting to create a tournament
+WHEN I input the game interval and game duration value
+THEN the I check if the interval can fit at least 3 times in the game duration
 ```
 
 ### Exit (forfeit)
