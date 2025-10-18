@@ -12,9 +12,9 @@ So that **players are forced to act rather than wait passively**.
 GIVEN a tournament is in "Active" status
   AND decay is configured with:
     - decayAmount (eg 10 coins)
-    - decayInterval (eg 1200 seconds = 20 minutes)
+    - gameInterval (eg 1200 seconds = 20 minutes)
 WHEN time passes
-THEN every `decayInterval` seconds, each active player loses `decayAmount` coins
+THEN every `gameInterval` seconds, each active player loses `decayAmount` coins
   AND coins cannot go below 0 (clamped)
   AND decay is calculated using lazy evaluation (not applied until needed)
 ```
@@ -29,7 +29,7 @@ GIVEN I am an active player
 WHEN I call `Tournament.getCurrentPlayerState(myAddress)` (view function)
 THEN my current coins are calculated as:
   coins = storedCoins - (decayAmount * intervalsPassed)
-  WHERE intervalsPassed = (block.timestamp - lastDecayTimestamp) / decayInterval
+  WHERE intervalsPassed = (block.timestamp - lastDecayTimestamp) / gameInterval
   AND coins = max(0, coins) (cannot be negative)
   AND this calculation does NOT modify storage
 ```
@@ -60,12 +60,12 @@ GIVEN a tournament is in "Active" status
   AND exit cost is configured with:
     - exitCostBasePercentBPS (eg 5000 = 50% of initial coins) (BPS = basis points)
     - exitCostCompoundRateBPS (eg 1000 = 10% per interval)
-    - exitCostInterval (eg 3600 seconds = 1 hour)
+    - gameInterval (eg 3600 seconds = 1 hour)
 WHEN calculating exit cost for a player
 THEN exitCost = baseCost * (1 + compoundRate * intervals)
   WHERE:
     - baseCost = player.initialCoins * exitCostBasePercentBPS / 10000
-    - intervals = (block.timestamp - actualStartTime) / exitCostInterval
+    - intervals = (block.timestamp - actualStartTime) / gameInterval
     - compoundRate = exitCostCompoundRateBPS / 10000
   AND this is a view function (no storage modification)
 ```
@@ -178,13 +178,11 @@ Resource initialization ties everything together, with the player starting balan
 ### Mechanics design
 
 - **Coin decay, the passive resource drain**
-
   - Linear, absolute loss
   - Applies to all active players equally
   - Can reduce coins to zero (hard deadline)
 
 - **Exit cost, the active barrier**
-
   - Exponential growth (simplified compound)
   - Scales with player's initial stake (fairness)
   - Creates urgency without being instantly impossible
@@ -204,7 +202,7 @@ Economic mechanics are configured via tournament parameters when creating a tour
 #### Decay parameters & config
 
 - `decayAmount`: Fixed number of coins lost per interval (eg 10 coins)
-- `decayInterval`: Time in seconds between decay applications (min 60 seconds)
+- `gameInterval`: Time in seconds between decay applications (min 60 seconds)
 
 **Validation constraints:**
 
@@ -218,7 +216,7 @@ Economic mechanics are configured via tournament parameters when creating a tour
 
 - `exitCostBasePercentBPS`: Base exit cost as percentage of player's initial coins, in basis points (eg 5000 = 50%)
 - `exitCostCompoundRateBPS`: Growth rate per interval in basis points (eg 1000 = 10% per interval)
-- `exitCostInterval`: Time in seconds between cost compounds (minimum 60 seconds)
+- `gameInterval`: Time in seconds between cost compounds (minimum 60 seconds)
 
 **Validation constraints:**
 
@@ -314,12 +312,12 @@ Notes:
 
 - If `totalDecay > storedCoins`, result is clamped to 0 (cannot be negative)
 - If `intervalsPassed = 0` (no time passed), no decay is applied
-- Partial intervals are ignored: if the decayInterval is 1200 sec, 1199 elapsed seconds will be considered as 0 interval.
+- Partial intervals are ignored: if the gameInterval is 1200 sec, 1199 elapsed seconds will be considered as 0 interval.
 
 **Formula :**
 
 ```
-intervalsPassed = (currentTimestamp - lastDecayTimestamp) / decayInterval
+intervalsPassed = (currentTimestamp - lastDecayTimestamp) / gameInterval
 totalDecay = decayAmount * intervalsPassed
 currentCoins = max(0, storedCoins - totalDecay)
 ```
@@ -331,7 +329,7 @@ With:
 
 storedCoins = 400
 decayAmount = 10
-decayInterval = 1200 seconds (20 minutes)
+gameInterval = 1200 seconds (20 minutes)
 lastDecayTimestamp = tournament start (0h)
 currentTimestamp = 1 hour later (3600 seconds)
 
@@ -351,7 +349,7 @@ Notes:
 - Cost can grow beyond initial coins (by design)
 
 ```
-intervalsPassed = (currentTimestamp - actualStartTime) / exitCostInterval
+intervalsPassed = (currentTimestamp - actualStartTime) / gameInterval
 baseCost = (initialCoins * exitCostBasePercentBPS) / 10000
 multiplier = 10000 + (exitCostCompoundRateBPS * intervalsPassed)
 exitCost = (baseCost * multiplier) / 10000
@@ -365,7 +363,7 @@ With:
 initialCoins = 400
 exitCostBasePercentBPS = 5000 (50%)
 exitCostCompoundRateBPS = 1000 (10% per interval)
-exitCostInterval = 3600 seconds (1 hour)
+gameInterval = 3600 seconds (1 hour)
 actualStartTime = 0
 currentTimestamp = 2 hours (7200 seconds)
 
