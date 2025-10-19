@@ -4,10 +4,16 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TournamentTokenWhitelist is Ownable {
+    struct TokenInfo {
+        bool isWhitelisted;
+        bool isPaused;
+        uint8 index;
+    }
+
+    uint8 public constant MAX_TOKENS = 255;
+
     address[] private _whitelistedTokens;
-    mapping(address => bool) private _isWhitelisted;
-    mapping(address => bool) private _isPaused;
-    mapping(address => uint256) private _tokenIndex;
+    mapping(address => TokenInfo) private _tokenInfo;
 
     event TokenWhitelisted(address indexed token);
     event TokenPaused(address indexed token, string reason);
@@ -16,35 +22,23 @@ contract TournamentTokenWhitelist is Ownable {
     error InvalidTokenAddress();
     error TokenAlreadyWhitelisted();
     error TokenNotWhitelisted();
-
-    modifier onlyValidAddress(address token) {
-        if (token == address(0)) {
-            revert InvalidTokenAddress();
-        }
-        _;
-    }
-
-    modifier onlyWhitelisted(address token) {
-        if (!_isWhitelisted[token]) {
-            revert TokenNotWhitelisted();
-        }
-        _;
-    }
-
-    modifier onlyNotWhitelisted(address token) {
-        if (_isWhitelisted[token]) {
-            revert TokenAlreadyWhitelisted();
-        }
-        _;
-    }
+    error MaxTokensReached();
 
     constructor(address initialOwner) Ownable(initialOwner) {}
 
-    function addToken(
-        address token
-    ) external onlyOwner onlyValidAddress(token) onlyNotWhitelisted(token) {
-        _isWhitelisted[token] = true;
-        _tokenIndex[token] = _whitelistedTokens.length;
+    function addToken(address token) external onlyOwner {
+        if (token == address(0)) revert InvalidTokenAddress();
+
+        TokenInfo storage info = _tokenInfo[token];
+        if (info.isWhitelisted) revert TokenAlreadyWhitelisted();
+
+        uint256 currentLength = _whitelistedTokens.length;
+        if (currentLength >= MAX_TOKENS) revert MaxTokensReached();
+
+        info.isWhitelisted = true;
+        info.isPaused = false;
+        info.index = uint8(currentLength);
+
         _whitelistedTokens.push(token);
 
         emit TokenWhitelisted(token);
@@ -53,28 +47,33 @@ contract TournamentTokenWhitelist is Ownable {
     function pauseToken(
         address token,
         string calldata reason
-    ) external onlyOwner onlyWhitelisted(token) {
-        _isPaused[token] = true;
+    ) external onlyOwner {
+        TokenInfo storage info = _tokenInfo[token];
+        if (!info.isWhitelisted) revert TokenNotWhitelisted();
+
+        info.isPaused = true;
         emit TokenPaused(token, reason);
     }
 
-    function unpauseToken(
-        address token
-    ) external onlyOwner onlyWhitelisted(token) {
-        _isPaused[token] = false;
+    function unpauseToken(address token) external onlyOwner {
+        TokenInfo storage info = _tokenInfo[token];
+        if (!info.isWhitelisted) revert TokenNotWhitelisted();
+
+        info.isPaused = false;
         emit TokenUnpaused(token);
     }
 
     function isWhitelisted(address token) external view returns (bool) {
-        return _isWhitelisted[token] && !_isPaused[token];
+        TokenInfo storage info = _tokenInfo[token];
+        return info.isWhitelisted && !info.isPaused;
     }
 
     function isPaused(address token) external view returns (bool) {
-        return _isPaused[token];
+        return _tokenInfo[token].isPaused;
     }
 
     function isTokenRegistered(address token) external view returns (bool) {
-        return _isWhitelisted[token];
+        return _tokenInfo[token].isWhitelisted;
     }
 
     function getWhitelistedTokens() external view returns (address[] memory) {
@@ -82,19 +81,33 @@ contract TournamentTokenWhitelist is Ownable {
     }
 
     function getActiveTokens() external view returns (address[] memory) {
+        uint256 length = _whitelistedTokens.length;
         uint256 activeCount = 0;
-        for (uint256 i = 0; i < _whitelistedTokens.length; i++) {
-            if (!_isPaused[_whitelistedTokens[i]]) {
-                activeCount++;
+
+        for (uint256 i = 0; i < length; ) {
+            if (!_tokenInfo[_whitelistedTokens[i]].isPaused) {
+                unchecked {
+                    ++activeCount;
+                }
+            }
+            unchecked {
+                ++i;
             }
         }
 
         address[] memory activeTokens = new address[](activeCount);
         uint256 currentIndex = 0;
-        for (uint256 i = 0; i < _whitelistedTokens.length; i++) {
-            if (!_isPaused[_whitelistedTokens[i]]) {
-                activeTokens[currentIndex] = _whitelistedTokens[i];
-                currentIndex++;
+
+        for (uint256 i = 0; i < length; ) {
+            address token = _whitelistedTokens[i];
+            if (!_tokenInfo[token].isPaused) {
+                activeTokens[currentIndex] = token;
+                unchecked {
+                    ++currentIndex;
+                }
+            }
+            unchecked {
+                ++i;
             }
         }
 
@@ -103,5 +116,91 @@ contract TournamentTokenWhitelist is Ownable {
 
     function getWhitelistedTokenCount() external view returns (uint256) {
         return _whitelistedTokens.length;
+    }
+
+    function getRemainingCapacity() external view returns (uint256) {
+        unchecked {
+            return MAX_TOKENS - _whitelistedTokens.length;
+        }
+    }
+
+    function addTokens(address[] calldata tokens) external onlyOwner {
+        uint256 length = tokens.length;
+        uint256 currentLength = _whitelistedTokens.length;
+
+        unchecked {
+            // Check batch won't exceed limit
+            if (currentLength + length > MAX_TOKENS) revert MaxTokensReached();
+        }
+
+        for (uint256 i = 0; i < length; ) {
+            address token = tokens[i];
+
+            if (token == address(0)) revert InvalidTokenAddress();
+
+            TokenInfo storage info = _tokenInfo[token];
+            if (info.isWhitelisted) revert TokenAlreadyWhitelisted();
+
+            info.isWhitelisted = true;
+            info.isPaused = false;
+
+            unchecked {
+                info.index = uint8(currentLength + i);
+            }
+
+            _whitelistedTokens.push(token);
+
+            emit TokenWhitelisted(token);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function pauseTokens(
+        address[] calldata tokens,
+        string calldata reason
+    ) external onlyOwner {
+        uint256 length = tokens.length;
+
+        for (uint256 i = 0; i < length; ) {
+            address token = tokens[i];
+            TokenInfo storage info = _tokenInfo[token];
+
+            if (!info.isWhitelisted) revert TokenNotWhitelisted();
+
+            info.isPaused = true;
+            emit TokenPaused(token, reason);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function unpauseTokens(address[] calldata tokens) external onlyOwner {
+        uint256 length = tokens.length;
+
+        for (uint256 i = 0; i < length; ) {
+            address token = tokens[i];
+            TokenInfo storage info = _tokenInfo[token];
+
+            if (!info.isWhitelisted) revert TokenNotWhitelisted();
+
+            info.isPaused = false;
+            emit TokenUnpaused(token);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function getTokenInfo(
+        address token
+    ) external view returns (bool isWhitelisted, bool isPaused, uint8 index) {
+        TokenInfo storage info = _tokenInfo[token];
+        return (info.isWhitelisted, info.isPaused, info.index);
     }
 }

@@ -80,6 +80,7 @@ contract TournamentRegistry is Ownable {
     function hasFactoryRole(address factory) external view returns (bool) {
         return _hasFactoryRole[factory];
     }
+
     /**
      * @notice Register a complete tournament system (5 contracts)
      * @dev Called by TournamentFactory after deploying all 5 minimal proxies
@@ -92,8 +93,8 @@ contract TournamentRegistry is Ownable {
         address trading,
         address randomizer
     ) external {
-        // Validation (role, invalid address, already in-use)
         if (!_hasFactoryRole[msg.sender]) revert OnlyFactory();
+        if (_isRegistered[hub]) revert AlreadyRegistered();
         if (
             hub == address(0) ||
             combat == address(0) ||
@@ -102,7 +103,6 @@ contract TournamentRegistry is Ownable {
             mysteryDeck == address(0)
         ) revert InvalidAddress();
 
-        if (_isRegistered[hub]) revert AlreadyRegistered();
         if (
             _moduleToHub[combat] != address(0) ||
             _moduleToHub[randomizer] != address(0) ||
@@ -110,7 +110,6 @@ contract TournamentRegistry is Ownable {
             _moduleToHub[trading] != address(0)
         ) revert ModuleAlreadyUsed();
 
-        // Register system
         _tournamentSystems[hub] = TournamentSystem({
             hub: hub,
             combat: combat,
@@ -133,9 +132,9 @@ contract TournamentRegistry is Ownable {
         // Status tracking
         TournamentCore.Status initialStatus = TournamentCore.Status.Open;
         _tournamentStatus[hub] = initialStatus;
-        _tournamentStatusIndex[hub][initialStatus] = _tournamentsByStatus[
-            initialStatus
-        ].length;
+
+        uint256 statusArrayLength = _tournamentsByStatus[initialStatus].length;
+        _tournamentStatusIndex[hub][initialStatus] = statusArrayLength;
         _tournamentsByStatus[initialStatus].push(hub);
 
         emit TournamentSystemRegistered(
@@ -149,10 +148,9 @@ contract TournamentRegistry is Ownable {
     }
 
     function updateTournamentStatus(TournamentCore.Status newStatus) external {
-        if (!_isRegistered[msg.sender]) revert NotRegistered();
-
         address hub = msg.sender;
 
+        if (!_isRegistered[hub]) revert NotRegistered();
         if (_tournamentSystems[hub].hub != hub) revert OnlyHub();
 
         TournamentCore.Status oldStatus = _tournamentStatus[hub];
@@ -164,8 +162,8 @@ contract TournamentRegistry is Ownable {
         _removeFromStatusArray(hub, oldStatus);
 
         // Add to new status array
-        _tournamentStatusIndex[hub][newStatus] = _tournamentsByStatus[newStatus]
-            .length;
+        uint256 newStatusArrayLength = _tournamentsByStatus[newStatus].length;
+        _tournamentStatusIndex[hub][newStatus] = newStatusArrayLength;
         _tournamentsByStatus[newStatus].push(hub);
         _tournamentStatus[hub] = newStatus;
 
@@ -177,15 +175,21 @@ contract TournamentRegistry is Ownable {
         TournamentCore.Status status
     ) private onlyRegisteredHub(hub) {
         uint256 indexToRemove = _tournamentStatusIndex[hub][status];
-        uint256 lastIndex = _tournamentsByStatus[status].length - 1;
 
-        if (indexToRemove != lastIndex) {
-            address lastTournament = _tournamentsByStatus[status][lastIndex];
-            _tournamentsByStatus[status][indexToRemove] = lastTournament;
-            _tournamentStatusIndex[lastTournament][status] = indexToRemove;
+        unchecked {
+            // Safe: array length is always > 0 when removing (hub is registered in this status)
+            uint256 lastIndex = _tournamentsByStatus[status].length - 1;
+
+            if (indexToRemove != lastIndex) {
+                address lastTournament = _tournamentsByStatus[status][
+                    lastIndex
+                ];
+                _tournamentsByStatus[status][indexToRemove] = lastTournament;
+                _tournamentStatusIndex[lastTournament][status] = indexToRemove;
+            }
+
+            _tournamentsByStatus[status].pop();
         }
-
-        _tournamentsByStatus[status].pop();
     }
 
     /**

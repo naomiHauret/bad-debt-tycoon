@@ -131,7 +131,7 @@ contract TournamentFactory is Ownable {
 
         TournamentHub(hub).initialize(
             params,
-            msg.sender, // tournament creator
+            msg.sender,
             combat,
             mysteryDeck,
             trading,
@@ -188,87 +188,78 @@ contract TournamentFactory is Ownable {
     function _validateParams(
         TournamentCore.Params calldata params
     ) internal view {
-        // Time bounds & duration
+        if (params.coinConversionRate == 0) revert InvalidCoinConversionRate();
+        if (params.decayAmount == 0) revert InvalidDecayAmount();
+        if (params.initialLives == 0) revert InvalidInitialLives();
+        if (params.exitLivesRequired == 0) revert InvalidExitLivesRequired();
+        if (params.exitCostBasePercentBPS == 0) revert InvalidExitCostBase();
+        if (params.deckDrawCost == 0) revert InvalidDeckCost();
+        if (params.deckShuffleCost == 0) revert InvalidDeckCost();
+        if (params.deckPeekCost == 0) revert InvalidDeckCost();
+        if (params.deckCatalog == address(0) || params.deckOracle == address(0))
+            revert InvalidAddress();
+
+        // Time & duration checks
         if (params.startTimestamp <= block.timestamp)
             revert InvalidStartTimestamp();
         if (params.duration < TournamentCore.MIN_DURATION)
             revert DurationTooShort();
         if (params.gameInterval < TournamentCore.MIN_GAME_INTERVAL)
             revert IntervalTooShort();
-        if (
-            params.duration <
-            params.gameInterval * TournamentCore.MIN_INTERVALS_REQUIRED
-        ) {
-            revert DurationTooShortForInterval();
-        }
 
-        // Player amount threshold
+        uint256 maxIntervals = params.duration / params.gameInterval;
+        if (maxIntervals < TournamentCore.MIN_INTERVALS_REQUIRED)
+            revert DurationTooShortForInterval();
+
+        // Player bounds
         if (params.minPlayers < TournamentCore.MIN_PLAYERS_REQUIRED)
             revert MinPlayersInvalid();
-        if (params.maxPlayers > 0 && params.maxPlayers < params.minPlayers) {
-            revert MaxPlayersInvalid();
-        }
-        if (
-            params.maxPlayers > 0 && params.startPlayerCount > params.maxPlayers
-        ) {
-            revert StartPlayerCountExceedsMax();
+        if (params.maxPlayers > 0) {
+            if (params.maxPlayers < params.minPlayers)
+                revert MaxPlayersInvalid();
+            if (params.startPlayerCount > params.maxPlayers)
+                revert StartPlayerCountExceedsMax();
         }
 
+        // Cards validation
+        if (params.cardsPerType < TournamentCore.MIN_CARDS_PER_TYPE)
+            revert InvalidCardsPerType();
+        if (params.cardsPerType * 3 > 255) revert InvalidCardsPerType();
+
         // Economic validation
-        if (!whitelist.isWhitelisted(params.stakeToken))
-            revert InvalidStakeToken();
         if (
             params.minStake > 0 &&
             params.maxStake > 0 &&
             params.minStake > params.maxStake
-        ) {
-            revert MinStakeExceedsMaxStake();
+        ) revert MinStakeExceedsMaxStake();
+
+        // Decay overflow protection (critical for `unchecked` in calculations)
+        if (params.decayAmount > type(uint128).max / maxIntervals) {
+            revert InvalidDecayAmount();
         }
-        if (params.coinConversionRate == 0) revert InvalidCoinConversionRate();
-        if (params.decayAmount == 0) revert InvalidDecayAmount();
-
-        // Combat validation
-        if (params.initialLives == 0) revert InvalidInitialLives();
-        if (params.cardsPerType < TournamentCore.MIN_CARDS_PER_TYPE)
-            revert InvalidCardsPerType();
-        if (params.cardsPerType * 3 > 255) revert InvalidCardsPerType(); // Overflow check
-        if (params.exitLivesRequired == 0) revert InvalidExitLivesRequired();
-
-        // Exit validation
-        if (params.exitCostBasePercentBPS == 0) revert InvalidExitCostBase();
 
         // Fee validation
-        if (params.creatorFeePercent > TournamentCore.MAX_CREATOR_FEE_PERCENT) {
+        if (params.creatorFeePercent > TournamentCore.MAX_CREATOR_FEE_PERCENT)
             revert CreatorFeeTooHigh();
-        }
         if (
             params.creatorFeePercent + params.platformFeePercent >
             TournamentCore.MAX_COMBINED_FEE_PERCENT
-        ) {
-            revert CombinedFeesTooHigh();
-        }
+        ) revert CombinedFeesTooHigh();
 
         // Forfeit validation
         if (params.forfeitAllowed) {
             if (
                 params.forfeitMinPenalty > 100 || params.forfeitMaxPenalty > 100
-            ) {
-                revert InvalidForfeitPenaltyBounds();
-            }
-            if (params.forfeitMinPenalty > params.forfeitMaxPenalty) {
+            ) revert InvalidForfeitPenaltyBounds();
+            if (params.forfeitMinPenalty > params.forfeitMaxPenalty)
                 revert ForfeitMinPenaltyExceedsMax();
-            }
         } else {
-            if (params.forfeitMinPenalty > 0 || params.forfeitMaxPenalty > 0) {
+            if (params.forfeitMinPenalty > 0 || params.forfeitMaxPenalty > 0)
                 revert InvalidForfeitPenaltyBounds();
-            }
         }
 
-        if (params.deckCatalog == address(0) || params.deckOracle == address(0))
-            revert InvalidAddress();
-        if (params.deckDrawCost == 0) revert InvalidDeckCost();
-        if (params.deckShuffleCost == 0) revert InvalidDeckCost();
-        if (params.deckPeekCost == 0) revert InvalidDeckCost();
+        if (!whitelist.isWhitelisted(params.stakeToken))
+            revert InvalidStakeToken();
     }
 
     /**
