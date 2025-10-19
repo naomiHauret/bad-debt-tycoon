@@ -56,22 +56,18 @@ library TournamentPlayerActions {
         IERC20(stakeToken).safeTransferFrom(sender, address(this), stakeAmount);
 
         initialCoins = stakeAmount * coinConversionRate;
+        uint32 timestamp = uint32(block.timestamp);
 
         player.initialCoins = initialCoins;
         player.coins = initialCoins;
         player.stakeAmount = stakeAmount;
-        player.lastDecayTimestamp = uint32(block.timestamp);
+        player.lastDecayTimestamp = timestamp;
         player.lives = initialLives;
         player.totalCards = cardsPerType * 3;
         player.status = TournamentCore.PlayerStatus.Active;
         player.exists = true;
 
-        emit PlayerJoined(
-            sender,
-            stakeAmount,
-            initialCoins,
-            uint32(block.timestamp)
-        );
+        emit PlayerJoined(sender, stakeAmount, initialCoins, timestamp);
     }
 
     function processExit(
@@ -88,7 +84,9 @@ library TournamentPlayerActions {
         address sender,
         uint256 penaltyAmount
     ) external returns (uint256 refundAmount) {
-        refundAmount = player.stakeAmount - penaltyAmount;
+        unchecked {
+            refundAmount = player.stakeAmount - penaltyAmount;
+        }
         player.status = TournamentCore.PlayerStatus.Forfeited;
 
         IERC20(stakeToken).safeTransfer(sender, refundAmount);
@@ -106,37 +104,38 @@ library TournamentPlayerActions {
         uint256 decayAmount,
         uint32 gameInterval
     ) external {
-        uint256 intervalsPassed = (block.timestamp -
-            player.lastDecayTimestamp) / gameInterval;
+        uint32 timestamp = uint32(block.timestamp);
+        uint256 intervalsPassed;
+
+        unchecked {
+            // Safe: tournament duration limits + validated decayAmount
+            // make overflow mathematically impossible
+            intervalsPassed =
+                (timestamp - player.lastDecayTimestamp) /
+                gameInterval;
+        }
 
         if (intervalsPassed > 0) {
-            uint256 totalDecay = decayAmount * intervalsPassed;
-            uint256 actualDecay;
+            uint256 currentCoins = player.coins;
+            uint256 totalDecay;
+            uint256 remainingCoins;
 
-            if (player.coins > totalDecay) {
-                actualDecay = totalDecay;
-                player.coins -= totalDecay;
+            totalDecay = decayAmount * intervalsPassed;
+
+            // Clamp to available coins
+            if (currentCoins > totalDecay) {
+                unchecked {
+                    remainingCoins = currentCoins - totalDecay;
+                }
             } else {
-                actualDecay = player.coins;
-                player.coins = 0;
+                totalDecay = currentCoins; // Adjust to actual decay
+                remainingCoins = 0;
             }
 
-            player.lastDecayTimestamp = uint32(block.timestamp);
-            emit DecayApplied(sender, actualDecay, player.coins);
-        }
-    }
+            player.coins = remainingCoins;
+            player.lastDecayTimestamp = timestamp;
 
-    function countActivePlayers(
-        address[] storage playerAddresses,
-        mapping(address => TournamentCore.PlayerResources) storage players
-    ) external view returns (uint256 activeCount) {
-        for (uint256 i = 0; i < playerAddresses.length; i++) {
-            if (
-                players[playerAddresses[i]].status ==
-                TournamentCore.PlayerStatus.Active
-            ) {
-                activeCount++;
-            }
+            emit DecayApplied(sender, totalDecay, remainingCoins);
         }
     }
 }

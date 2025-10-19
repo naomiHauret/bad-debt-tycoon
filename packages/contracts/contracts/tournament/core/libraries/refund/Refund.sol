@@ -13,8 +13,8 @@ library TournamentRefund {
     event RefundClaimed(address indexed player, uint256 amount);
 
     struct RefundContext {
-        TournamentCore.Status status;
         address stakeToken;
+        TournamentCore.Status status;
         uint16 maxPlayers;
         uint16 startPlayerCount;
         uint256 startPoolAmount;
@@ -22,7 +22,7 @@ library TournamentRefund {
 
     function processRefund(
         TournamentCore.PlayerResources storage player,
-        RefundContext memory context,
+        RefundContext calldata context,
         TournamentRegistry registry,
         address sender,
         uint16 playerCount,
@@ -37,40 +37,53 @@ library TournamentRefund {
         )
     {
         uint256 refundAmount = player.stakeAmount;
-        newStatus = context.status;
-        newPlayerCount = playerCount;
-        newTotalStaked = totalStaked;
-        shouldDecrementCount = false;
+        TournamentCore.Status currentStatus = context.status;
 
-        // Voluntary withdrawal (Open/Locked/PendingStart)
-        if (context.status != TournamentCore.Status.Cancelled) {
+        // Handle cancelled tournament (simple case)
+        if (currentStatus == TournamentCore.Status.Cancelled) {
+            newStatus = currentStatus;
+            newPlayerCount = playerCount;
+            newTotalStaked = totalStaked;
+            shouldDecrementCount = false;
+        }
+        // Handle voluntary withdrawal
+        else {
             player.exists = false;
             shouldDecrementCount = true;
-            newPlayerCount = playerCount - 1;
-            newTotalStaked = totalStaked - refundAmount;
 
-            // Unlock tournament if needed
-            if (
-                context.status == TournamentCore.Status.Locked &&
-                (context.maxPlayers == 0 || newPlayerCount < context.maxPlayers)
-            ) {
-                newStatus = TournamentCore.Status.Open;
-                TournamentLifecycle.transitionToOpen(registry);
+            unchecked {
+                newPlayerCount = playerCount - 1;
+                newTotalStaked = totalStaked - refundAmount;
             }
 
-            // Revert PendingStart to Open if conditions broken
-            if (
-                context.status == TournamentCore.Status.PendingStart &&
-                !areStartConditionsMet(
-                    context.startPlayerCount,
-                    context.startPoolAmount,
-                    newPlayerCount,
-                    newTotalStaked
-                )
-            ) {
-                newStatus = TournamentCore.Status.Open;
-                TournamentLifecycle.transitionToOpen(registry);
-                TournamentLifecycle.emitRevertToOpen();
+            // Determine new status based on current status
+            if (currentStatus == TournamentCore.Status.Locked) {
+                if (
+                    context.maxPlayers == 0 ||
+                    newPlayerCount < context.maxPlayers
+                ) {
+                    newStatus = TournamentCore.Status.Open;
+                    TournamentLifecycle.transitionToOpen(registry);
+                } else {
+                    newStatus = currentStatus;
+                }
+            } else if (currentStatus == TournamentCore.Status.PendingStart) {
+                if (
+                    !_areStartConditionsMet(
+                        context.startPlayerCount,
+                        context.startPoolAmount,
+                        newPlayerCount,
+                        newTotalStaked
+                    )
+                ) {
+                    newStatus = TournamentCore.Status.Open;
+                    TournamentLifecycle.transitionToOpen(registry);
+                    TournamentLifecycle.emitRevertToOpen();
+                } else {
+                    newStatus = currentStatus;
+                }
+            } else {
+                newStatus = currentStatus;
             }
         }
 
@@ -79,7 +92,7 @@ library TournamentRefund {
         emit RefundClaimed(sender, refundAmount);
     }
 
-    function areStartConditionsMet(
+    function _areStartConditionsMet(
         uint16 startPlayerCount,
         uint256 startPoolAmount,
         uint16 currentPlayerCount,

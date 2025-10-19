@@ -6,11 +6,12 @@ import {TournamentCalculations} from "./../calculations/Calculations.sol";
 
 library TournamentViews {
     function getCurrentCoins(
-        TournamentCore.PlayerResources memory player,
+        TournamentCore.PlayerResources calldata player,
         uint256 decayAmount,
         uint32 gameInterval
     ) external view returns (uint256) {
         if (!player.exists) return 0;
+
         return
             TournamentCalculations.calculateCurrentCoins(
                 player.coins,
@@ -22,14 +23,13 @@ library TournamentViews {
 
     function calculateExitCost(
         TournamentCore.Status status,
-        TournamentCore.PlayerResources memory player,
+        TournamentCore.PlayerResources calldata player,
         uint32 actualStartTime,
         uint16 exitCostBasePercentBPS,
         uint16 exitCostCompoundRateBPS,
         uint32 gameInterval
     ) external view returns (uint256) {
-        if (status != TournamentCore.Status.Active) return 0;
-        if (!player.exists) return 0;
+        if (status != TournamentCore.Status.Active || !player.exists) return 0;
 
         return
             TournamentCalculations.calculateExitCost(
@@ -43,22 +43,23 @@ library TournamentViews {
 
     function canExit(
         TournamentCore.Status status,
-        TournamentCore.PlayerResources memory player,
+        TournamentCore.PlayerResources calldata player,
         uint256 currentCoins,
         uint256 exitCost,
         uint8 exitLivesRequired
     ) external pure returns (bool) {
-        if (!player.exists) return false;
         if (status != TournamentCore.Status.Active) return false;
         if (player.status != TournamentCore.PlayerStatus.Active) return false;
+        if (!player.exists) return false;
+        if (player.lives < exitLivesRequired) return false;
+        if (player.totalCards != 0) return false;
+        if (currentCoins < exitCost) return false;
 
-        return (player.lives >= exitLivesRequired &&
-            player.totalCards == 0 &&
-            currentCoins >= exitCost);
+        return true;
     }
 
     function calculateForfeitPenalty(
-        TournamentCore.PlayerResources memory player,
+        TournamentCore.PlayerResources calldata player,
         uint32 endTime,
         uint32 duration,
         uint8 forfeitPenaltyType,
@@ -103,19 +104,6 @@ library TournamentViews {
             );
     }
 
-    function calculateRecommendedDuration(
-        uint8 cardsPerType,
-        uint32 recommendedSecondsPerCard,
-        uint32 minDuration
-    ) external pure returns (uint32) {
-        uint32 totalCards = uint32(cardsPerType) * 3;
-        uint32 cardBasedRecommended = totalCards * recommendedSecondsPerCard;
-        return
-            cardBasedRecommended > minDuration
-                ? cardBasedRecommended
-                : minDuration;
-    }
-
     function getExitWindow(
         uint32 exitWindowStart,
         uint32 endTime
@@ -126,8 +114,12 @@ library TournamentViews {
     {
         windowStart = exitWindowStart;
         windowEnd = endTime;
-        isOpen =
-            block.timestamp >= exitWindowStart &&
-            block.timestamp < endTime;
+
+        if (block.timestamp < exitWindowStart) {
+            isOpen = false;
+            return (windowStart, windowEnd, isOpen);
+        }
+
+        isOpen = block.timestamp < endTime;
     }
 }
