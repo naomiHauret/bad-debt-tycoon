@@ -54,7 +54,6 @@ contract TournamentRegistry is Ownable {
 
     error InvalidAddress();
     error OnlyFactory();
-    error OnlyHub();
     error AlreadyRegistered();
     error NotRegistered();
     error ModuleAlreadyUsed();
@@ -151,7 +150,6 @@ contract TournamentRegistry is Ownable {
         address hub = msg.sender;
 
         if (!_isRegistered[hub]) revert NotRegistered();
-        if (_tournamentSystems[hub].hub != hub) revert OnlyHub();
 
         TournamentCore.Status oldStatus = _tournamentStatus[hub];
 
