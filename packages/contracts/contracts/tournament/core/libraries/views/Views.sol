@@ -5,6 +5,8 @@ import {TournamentCore} from "./../../TournamentCore.sol";
 import {TournamentCalculations} from "./../calculations/Calculations.sol";
 
 library TournamentViews {
+    error NotFound();
+
     function getCurrentCoins(
         TournamentCore.PlayerResources calldata player,
         uint256 decayAmount,
@@ -121,5 +123,119 @@ library TournamentViews {
         }
 
         isOpen = block.timestamp < endTime;
+    }
+
+    function getCurrentCoinsFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        TournamentCore.Params storage params,
+        address player
+    ) external view returns (uint256) {
+        return
+            TournamentCalculations.calculateCurrentCoins(
+                players[player].coins,
+                players[player].lastDecayTimestamp,
+                params.decayAmount,
+                params.gameInterval
+            );
+    }
+
+    function calculateExitCostFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        TournamentCore.Params storage params,
+        TournamentCore.Status status,
+        uint32 actualStartTime,
+        address player
+    ) external view returns (uint256) {
+        if (status != TournamentCore.Status.Active) return 0;
+        if (!players[player].exists) return 0;
+
+        return
+            TournamentCalculations.calculateExitCost(
+                players[player].initialCoins,
+                actualStartTime,
+                params.exitCostBasePercentBPS,
+                params.exitCostCompoundRateBPS,
+                params.gameInterval
+            );
+    }
+
+    function canExitFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        TournamentCore.Params storage params,
+        TournamentCore.Status status,
+        uint32 actualStartTime,
+        address player
+    ) external view returns (bool) {
+        if (status != TournamentCore.Status.Active) return false;
+
+        TournamentCore.PlayerResources storage playerData = players[player];
+        if (!playerData.exists) return false;
+        if (playerData.status != TournamentCore.PlayerStatus.Active)
+            return false;
+        if (playerData.lives < params.exitLivesRequired) return false;
+        if (playerData.totalCards != 0) return false;
+
+        uint256 currentCoins = TournamentCalculations.calculateCurrentCoins(
+            playerData.coins,
+            playerData.lastDecayTimestamp,
+            params.decayAmount,
+            params.gameInterval
+        );
+
+        uint256 exitCost = TournamentCalculations.calculateExitCost(
+            playerData.initialCoins,
+            actualStartTime,
+            params.exitCostBasePercentBPS,
+            params.exitCostCompoundRateBPS,
+            params.gameInterval
+        );
+
+        return currentCoins >= exitCost;
+    }
+
+    function calculateForfeitPenaltyFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        TournamentCore.Params storage params,
+        uint32 endTime,
+        address player
+    ) external view returns (uint256) {
+        if (!players[player].exists) return 0;
+
+        return
+            TournamentCalculations.calculateForfeitPenalty(
+                players[player].stakeAmount,
+                endTime,
+                params.duration,
+                uint8(params.forfeitPenaltyType),
+                params.forfeitMaxPenalty,
+                params.forfeitMinPenalty
+            );
+    }
+
+    function getCurrentPlayerResourcesFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        TournamentCore.Params storage params,
+        address player
+    ) external view returns (TournamentCore.PlayerResources memory) {
+        if (!players[player].exists) revert NotFound();
+
+        TournamentCore.PlayerResources memory playerData = players[player];
+
+        playerData.coins = TournamentCalculations.calculateCurrentCoins(
+            playerData.coins,
+            playerData.lastDecayTimestamp,
+            params.decayAmount,
+            params.gameInterval
+        );
+
+        return playerData;
+    }
+
+    function getPlayerFromStorage(
+        mapping(address => TournamentCore.PlayerResources) storage players,
+        address player
+    ) external view returns (TournamentCore.PlayerResources memory) {
+        if (!players[player].exists) revert NotFound();
+        return players[player];
     }
 }

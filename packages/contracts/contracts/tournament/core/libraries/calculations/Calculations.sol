@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import {TournamentCore} from "./../TournamentCore.sol";
+import {TournamentCore} from "./../../TournamentCore.sol";
 
 library TournamentCalculations {
     function calculateExitCost(
