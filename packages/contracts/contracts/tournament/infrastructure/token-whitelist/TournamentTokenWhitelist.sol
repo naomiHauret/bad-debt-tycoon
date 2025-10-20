@@ -199,7 +199,7 @@ contract TournamentTokenWhitelist is Ownable {
 
     function getTokenInfo(
         address token
-    ) external view returns (bool isWhitelisted, bool isPaused, uint8 index) {
+    ) external view returns (bool whitelisted, bool paused, uint8 index) {
         TokenInfo storage info = _tokenInfo[token];
         return (info.isWhitelisted, info.isPaused, info.index);
     }
