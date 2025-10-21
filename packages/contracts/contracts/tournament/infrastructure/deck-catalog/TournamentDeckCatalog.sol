@@ -7,7 +7,7 @@ contract TournamentDeckCatalog is Ownable {
     enum CardCategory {
         Instant,
         Modifier,
-        Resource
+        Combat
     }
 
     enum ModifierTrigger {
@@ -52,7 +52,7 @@ contract TournamentDeckCatalog is Ownable {
         CardCategory category;
         ModifierTrigger trigger;
         ResourceCard resourceType;
-        uint256 baseCost;
+        uint16 baseWeight;
         bytes effectData;
     }
 
@@ -101,7 +101,7 @@ contract TournamentDeckCatalog is Ownable {
     event CardRegistered(
         uint8 indexed cardId,
         CardCategory category,
-        uint256 baseCost
+        uint16 baseWeight
     );
     event ObjectiveRegistered(
         uint8 indexed objectiveId,
@@ -121,6 +121,8 @@ contract TournamentDeckCatalog is Ownable {
     error InvalidResource();
     error InvalidCardId();
     error InvalidObjectiveId();
+    error InvalidBaseWeight();
+    error InvalidEffectData();
     error CardAlreadyPaused();
     error CardNotPaused();
     error ObjectiveAlreadyPaused();
@@ -156,7 +158,7 @@ contract TournamentDeckCatalog is Ownable {
             category: card.category,
             trigger: card.trigger,
             resourceType: card.resourceType,
-            baseCost: card.baseCost,
+            baseWeight: card.baseWeight,
             effectData: card.effectData
         });
 
@@ -169,11 +171,11 @@ contract TournamentDeckCatalog is Ownable {
         if (card.category == CardCategory.Modifier) {
             _cardsByTrigger[card.trigger].push(card.cardId);
         }
-        if (card.category == CardCategory.Resource) {
+        if (card.category == CardCategory.Combat) {
             _cardsByResourceType[card.resourceType].push(card.cardId);
         }
 
-        emit CardRegistered(card.cardId, card.category, card.baseCost);
+        emit CardRegistered(card.cardId, card.category, card.baseWeight);
     }
 
     function registerCards(CardDefinition[] calldata cards) external onlyOwner {
@@ -199,7 +201,7 @@ contract TournamentDeckCatalog is Ownable {
                 category: card.category,
                 trigger: card.trigger,
                 resourceType: card.resourceType,
-                baseCost: card.baseCost,
+                baseWeight: card.baseWeight,
                 effectData: card.effectData
             });
 
@@ -209,11 +211,11 @@ contract TournamentDeckCatalog is Ownable {
             if (card.category == CardCategory.Modifier) {
                 _cardsByTrigger[card.trigger].push(id);
             }
-            if (card.category == CardCategory.Resource) {
+            if (card.category == CardCategory.Combat) {
                 _cardsByResourceType[card.resourceType].push(id);
             }
 
-            emit CardRegistered(id, card.category, card.baseCost);
+            emit CardRegistered(id, card.category, card.baseWeight);
 
             unchecked {
                 ++i;
@@ -410,21 +412,37 @@ contract TournamentDeckCatalog is Ownable {
     function _validateCardDefinition(
         CardDefinition calldata card
     ) internal pure {
-        if (card.category == CardCategory.Modifier) {
-            if (card.trigger == ModifierTrigger.None)
-                revert InvalidModifierTrigger();
-            if (card.resourceType != ResourceCard.None)
-                revert InvalidResource();
-        } else if (card.category == CardCategory.Resource) {
-            if (card.resourceType == ResourceCard.None)
-                revert InvalidResource();
-            if (card.trigger != ModifierTrigger.None)
-                revert InvalidModifierTrigger();
-        } else if (card.category == CardCategory.Instant) {
-            if (card.trigger != ModifierTrigger.None)
-                revert InvalidModifierTrigger();
-            if (card.resourceType != ResourceCard.None)
-                revert InvalidResource();
+        if (card.baseWeight == 0) revert InvalidBaseWeight();
+        if (card.effectData.length == 0) revert InvalidEffectData();
+
+        CardCategory category = card.category;
+        ModifierTrigger trigger = card.trigger;
+        ResourceCard resourceType = card.resourceType;
+
+        unchecked {
+            // Modifier: trigger != None, resourceType == None
+            if (category == CardCategory.Modifier) {
+                if (trigger == ModifierTrigger.None)
+                    revert InvalidModifierTrigger();
+                if (resourceType != ResourceCard.None) revert InvalidResource();
+                return;
+            }
+
+            if (category == CardCategory.Combat) {
+                if (resourceType == ResourceCard.None) revert InvalidResource();
+                if (trigger != ModifierTrigger.None)
+                    revert InvalidModifierTrigger();
+                return;
+            }
+
+            if (category == CardCategory.Instant) {
+                if (trigger != ModifierTrigger.None)
+                    revert InvalidModifierTrigger();
+                if (resourceType != ResourceCard.None) revert InvalidResource();
+                return;
+            }
+
+            revert InvalidCardCategory();
         }
     }
 
