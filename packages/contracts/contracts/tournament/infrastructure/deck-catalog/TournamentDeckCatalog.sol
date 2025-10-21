@@ -14,8 +14,7 @@ contract TournamentDeckCatalog is Ownable {
         None,
         OnNextFight,
         OnNextWin,
-        OnNextLoss,
-        OnTrade
+        OnNextLoss
     }
 
     enum CombatCard {
