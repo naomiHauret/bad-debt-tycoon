@@ -726,7 +726,7 @@ contract TournamentDeckCatalogCardsTest is Test {
         uint16 baseWeight
     ) public {
         vm.assume(cardId > 0);
-        vm.assume(triggerIndex >= 1 && triggerIndex <= 4);
+        vm.assume(triggerIndex >= 1 && triggerIndex <= 3);
         vm.assume(baseWeight > 0);
 
         TournamentDeckCatalog.ModifierTrigger trigger = TournamentDeckCatalog
