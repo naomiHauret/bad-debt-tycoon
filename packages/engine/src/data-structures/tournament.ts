@@ -88,16 +88,15 @@ export interface TournamentRules {
   deckOracle: Address
 }
 
-export const RECOMMENDED_SECONDS_PER_CARD = 360;
-export const MIN_DURATION = 1200;
-export const MIN_CARDS_PER_TYPE = 1;
-export const MAX_CARDS_PER_TYPE = 10;
-export const MIN_PLAYERS_REQUIRED = 2;
-export const MAX_PLAYERS_LIMIT = 10000;
-export const MIN_GAME_INTERVAL = 60;
-export const MAX_GAME_INTERVAL = 3600;
-export const MAX_CREATOR_FEE_PERCENT = 5;
-export const MAX_PLATFORM_FEE = 5;
-export const MAX_COMBINED_FEE_PERCENT = 10;
-export const MIN_INTERVALS_REQUIRED = 3;
-
+export const RECOMMENDED_SECONDS_PER_CARD = 360
+export const MIN_DURATION = 1200
+export const MIN_CARDS_PER_TYPE = 1
+export const MAX_CARDS_PER_TYPE = 10
+export const MIN_PLAYERS_REQUIRED = 2
+export const MAX_PLAYERS_LIMIT = 10000
+export const MIN_GAME_INTERVAL = 60
+export const MAX_GAME_INTERVAL = 3600
+export const MAX_CREATOR_FEE_PERCENT = 5
+export const MAX_PLATFORM_FEE = 5
+export const MAX_COMBINED_FEE_PERCENT = 10
+export const MIN_INTERVALS_REQUIRED = 3

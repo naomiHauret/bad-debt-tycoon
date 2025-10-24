@@ -28,7 +28,7 @@ export type PlayerStatusValue = (typeof PLAYER_STATUS)[keyof typeof PLAYER_STATU
 export interface TournamentPlayer {
   initialCoins: number
   coins: number
-  stakeAmount: number 
+  stakeAmount: number
   lastDecayTimestamp: number
   combatCount: number
   lives: number
