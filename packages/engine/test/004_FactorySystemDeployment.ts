@@ -1,33 +1,33 @@
 import assert from "node:assert"
 import { before, describe, test } from "node:test"
 import { network } from "hardhat"
-import { getAddress, isAddress, parseUnits, type PublicActions, zeroAddress } from "viem"
+import { getAddress, isAddress, type PublicActions, parseUnits, zeroAddress } from "viem"
 import FactoryModule from "@/engine/ignition/modules/FactorySystem.hardhat"
 
 async function deployFactorySystemFixture() {
   const { ignition } = await network.connect()
-  const { 
-      factory,
-      registry,
-      deckCatalog,
-      whitelist,
-      combatImpl,
-      mysteryDeckImpl,
-      tradingImpl,
-      randomizerImpl,
-      hubImpl
-    } = await ignition.deploy(FactoryModule)
-  
+  const {
+    factory,
+    registry,
+    deckCatalog,
+    whitelist,
+    combatImpl,
+    mysteryDeckImpl,
+    tradingImpl,
+    randomizerImpl,
+    hubImpl,
+  } = await ignition.deploy(FactoryModule)
+
   return {
-      factory,
-      registry,
-      deckCatalog,
-      whitelist,
-      combatImpl,
-      mysteryDeckImpl,
-      tradingImpl,
-      randomizerImpl,
-      hubImpl
+    factory,
+    registry,
+    deckCatalog,
+    whitelist,
+    combatImpl,
+    mysteryDeckImpl,
+    tradingImpl,
+    randomizerImpl,
+    hubImpl,
   }
 }
 
@@ -45,9 +45,9 @@ describe("TournamentFactory Deployment", () => {
     publicClient = await viem.getPublicClient()
     accounts = await viem.getWalletClients()
     platformRunner = accounts[0]
-    
+
     const deployment = await networkHelpers.loadFixture(deployFactorySystemFixture)
-    
+
     factory = deployment.factory
     registry = deployment.registry
     whitelist = deployment.whitelist
@@ -114,7 +114,7 @@ describe("TournamentFactory Deployment", () => {
 
     test("should return all implementation addresses via getImplementations", async () => {
       const implementations = await factory.read.getImplementations()
-      
+
       assert.ok(isAddress(implementations[0]), "Hub implementation should be valid")
       assert.ok(isAddress(implementations[1]), "Combat implementation should be valid")
       assert.ok(isAddress(implementations[2]), "MysteryDeck implementation should be valid")
@@ -201,9 +201,6 @@ describe("TournamentFactory Deployment", () => {
   })
 
   describe("owner functions", () => {
-
-
-
     test("should allow owner to update platform fee", async () => {
       const newFee = 3n // 3%
       const previousFee = await factory.read.platformFeePercent()
@@ -211,13 +208,13 @@ describe("TournamentFactory Deployment", () => {
         await factory.write.setPlatformFee([newFee], {
           account: platformRunner.account,
         })
-        
+
         const updatedFee = await factory.read.platformFeePercent()
         assert.notEqual(updatedFee, previousFee, "Platform fee should be updated")
       }
-    })    
-    
-/*
+    })
+
+    /*
     test("should allow owner to send ETH deposits and withdraw", async () => {
       
       // Get initial balance (external view)
@@ -279,20 +276,19 @@ describe("TournamentFactory Deployment", () => {
 */
     test("should allow owner to update game oracle", async () => {
       const newOracle = accounts[1].account.address
-      
+
       await factory.write.setGameOracle([newOracle], {
         account: platformRunner.account,
       })
-      
+
       const updatedOracle = await factory.read.gameOracle()
       assert.strictEqual(
         updatedOracle.toLowerCase(),
         getAddress(newOracle).toLowerCase(),
         "Game oracle should be updated",
       )
-
-  })})
-
+    })
+  })
 
   describe("error handling", () => {
     test("should reject platform fee higher than 5%", async () => {
@@ -325,7 +321,7 @@ describe("TournamentFactory Deployment", () => {
 
     test("should reject non-owner trying to set platform fee", async () => {
       const nonOwner = accounts[1]
-      
+
       await assert.rejects(
         async () => {
           await factory.write.setPlatformFee([3n], {
@@ -341,7 +337,7 @@ describe("TournamentFactory Deployment", () => {
 
     test("should reject non-owner trying to set game oracle", async () => {
       const nonOwner = accounts[1]
-      
+
       await assert.rejects(
         async () => {
           await factory.write.setGameOracle([accounts[2].account.address], {
@@ -355,11 +351,9 @@ describe("TournamentFactory Deployment", () => {
       )
     })
 
-  
-
     test("should reject non-owner trying to withdraw ETH", async () => {
       const nonOwner = accounts[1]
-      
+
       await assert.rejects(
         async () => {
           await factory.write.withdrawETH([parseUnits("0.01", 18)], {
@@ -372,5 +366,5 @@ describe("TournamentFactory Deployment", () => {
         "Should reject non-owner withdrawing ETH",
       )
     })
-})
   })
+})
