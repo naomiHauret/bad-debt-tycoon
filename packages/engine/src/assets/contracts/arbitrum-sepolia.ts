@@ -1,5 +1,5 @@
 // This file is auto-generated. Do not edit manually.
-// Generated on: 2025-10-24T16:31:24.544Z
+// Generated on: 2025-10-24T23:22:30.372Z
 
 import DECK_CATALOG_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/DeckCatalog#TournamentDeckCatalog.json"
 import REGISTRY_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/Registry#TournamentRegistry.json"
