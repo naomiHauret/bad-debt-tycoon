@@ -56,10 +56,9 @@ describe("TournamentTokenWhitelist Deployment", () => {
     })
 
     test("should still have enough space to whitelist new tokens", async () => {
-      const remainingCapacity = await tokenWhitelistInstance.read.getRemainingCapacity();
+      const remainingCapacity = await tokenWhitelistInstance.read.getRemainingCapacity()
       const hasSpace = remainingCapacity > 0
       assert.equal(hasSpace, true, "Should still be able to add more tokens")
-
     })
   })
 })
