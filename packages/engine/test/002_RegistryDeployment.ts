@@ -42,6 +42,5 @@ describe("TournamentRegistry Deployment", () => {
       const tournaments = await registryInstance.read.getAllTournaments()
       assert.equal(tournaments.length, 0, "Registry tournaments list size should be 0")
     })
-
   })
 })
