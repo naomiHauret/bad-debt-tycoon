@@ -1,6 +1,7 @@
 /* Generated file - do not edit manually */
-import usdc from './whitelist/usdc/definition.json';
-import pyusd from './whitelist/pyusd/definition.json';
+
+import pyusd from "./whitelist/pyusd/definition.json"
+import usdc from "./whitelist/usdc/definition.json"
 
 export const TOKEN_LIST = [
   {
@@ -8,13 +9,13 @@ export const TOKEN_LIST = [
     name: usdc.name,
     symbol: usdc.symbol,
     decimals: usdc.decimals,
-    address: usdc.deployment["421614"]
+    address: usdc.deployment["421614"],
   },
   {
     id: pyusd.id,
     name: pyusd.name,
     symbol: pyusd.symbol,
     decimals: pyusd.decimals,
-    address: pyusd.deployment["421614"]
-  }
-] as const;
+    address: pyusd.deployment["421614"],
+  },
+] as const
