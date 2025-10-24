@@ -1,0 +1,48 @@
+{
+  "name": "@bdt/engine",
+  "type": "module",
+  "exports": {
+    "./game/catalog": "./src/assets/catalog/catalog.ts",
+    "./game/catalog/cards": "./src/assets/catalog/cards.ts",
+    "./game/catalog/objectives": "./src/assets/catalog/objectives.ts",
+    "./contracts/hardhat": "./src/assets/contracts/hardhat.ts",
+    "./tokens/whitelist": "./src/assets/tokens/whitelist/config.ts",
+    "./tokens/arbitrum-sepolia": "./src/assets/tokens/arbitrum-sepolia.ts",
+    "./tokens/usdc": "./src/assets/tokens/whitelist/usdc/definition.json",
+    "./tokens/pyusd": "./src/assets/tokens/whitelist/pyusd/definition.json"
+  },
+  "scripts": {
+    "build": "bun run generate:tokens && bunx hardhat build",
+    "generate:tokens": "bun run ./src/assets/tokens/helpers/generate-tokens-lists.ts",
+    "test": "bunx hardhat test",
+    "test:solidity": "bunx hardhat test solidity",
+    "test:nodejs": "bun run build && bunx hardhat test nodejs",
+
+    "deploy:tokenlist:local": "bun run generate:tokens && bunx hardhat ignition deploy ignition/modules/TokenWhitelist.hardhat.ts --network localhost",
+    "deploy:tokenlist:arb:testnet": "bun run generate:tokens && bunx hardhat ignition deploy ignition/modules/TokenWhitelist.arbitrum-sepolia.ts --network arbitrumSepolia",
+   
+    "deploy:catalog:local": "bunx hardhat ignition deploy ignition/modules/DeckCatalog.ts --network localhost",
+    "deploy:catalog:arb:testnet": "bunx hardhat ignition deploy ignition/modules/DeckCatalog.ts --network arbitrumSepolia",
+  
+    "deploy:registry:local": "bunx hardhat ignition deploy ignition/modules/Registry.ts --network localhost",
+    "deploy:registry:arb:testnet": "bunx hardhat ignition deploy ignition/modules/Registry.ts --network arbitrumSepolia",
+   
+    "deploy:factory:local": "bunx hardhat ignition deploy ignition/modules/FactorySystem.hardhat.ts --network localhost --parameters ./src/parameters/factory/factory.hardhat.json",
+    "deploy:factory:arb:testnet": "bunx hardhat ignition deploy ignition/modules/FactorySystem.arbitrum-sepolia.ts --network arbitrumSepolia --parameters ./src/parameters/factory/factory.arbitrum-sepolia.json",
+
+    "deploy:system:local": "bun run deploy:tokenlist:local && bun run deploy:catalog:local && bun run deploy:registry:local && bun run deploy:factory:local",
+    "deploy:system:arb:testnet": "bun run deploy:tokenlist:arb:testnet && bun run deploy:catalog:arb:testnet && bun run deploy:registry:arb:testnet && bun run deploy:factory:arb:testnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "@pythnetwork/entropy-sdk-solidity": "^2.1.0",
+    "@types/node": "^22.8.5",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.0.7",
+    "typescript": "~5.8.0",
+    "viem": "^2.30.0"
+  },
+  "dependencies": {}
+}
