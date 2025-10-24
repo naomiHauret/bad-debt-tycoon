@@ -1,0 +1,14 @@
+{
+  "name": "@bdt/backend",
+  "version": "1.0.50",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bun --watch ./src/server.ts"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0"
+  }
+}
