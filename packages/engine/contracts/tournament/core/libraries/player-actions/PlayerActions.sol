@@ -12,14 +12,14 @@ library TournamentPlayerActions {
         address indexed player,
         uint256 stakeAmount,
         uint256 initialCoins,
-        uint32 exitTime
+        uint32 timestamp
     );
-    event PlayerExited(address indexed player, uint32 exitTime);
+    event PlayerExited(address indexed player, uint32 timestamp);
     event PlayerForfeited(
         address indexed player,
         uint256 penaltyAmount,
         uint256 refundAmount,
-        uint32 exitTime
+        uint32 timestamp
     );
     event DecayApplied(
         address indexed player,
