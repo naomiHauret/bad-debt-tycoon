@@ -8,7 +8,6 @@
       "@/engine/data-structures/*": ["./src/data-structures/*"],
       "@/engine/features/*": ["./src/features/*"],
       "@/engine/contracts/params/*": ["./src/parameters/*"]
-
     },
     "lib": ["es2023"],
     "moduleResolution": "bundler",

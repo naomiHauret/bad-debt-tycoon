@@ -20,13 +20,13 @@
 
     "deploy:tokenlist:local": "bun run generate:tokens && bunx hardhat ignition deploy ignition/modules/TokenWhitelist.hardhat.ts --network localhost",
     "deploy:tokenlist:arb:testnet": "bun run generate:tokens && bunx hardhat ignition deploy ignition/modules/TokenWhitelist.arbitrum-sepolia.ts --network arbitrumSepolia",
-   
+
     "deploy:catalog:local": "bunx hardhat ignition deploy ignition/modules/DeckCatalog.ts --network localhost",
     "deploy:catalog:arb:testnet": "bunx hardhat ignition deploy ignition/modules/DeckCatalog.ts --network arbitrumSepolia",
-  
+
     "deploy:registry:local": "bunx hardhat ignition deploy ignition/modules/Registry.ts --network localhost",
     "deploy:registry:arb:testnet": "bunx hardhat ignition deploy ignition/modules/Registry.ts --network arbitrumSepolia",
-   
+
     "deploy:factory:local": "bunx hardhat ignition deploy ignition/modules/FactorySystem.hardhat.ts --network localhost --parameters ./src/parameters/factory/factory.hardhat.json",
     "deploy:factory:arb:testnet": "bunx hardhat ignition deploy ignition/modules/FactorySystem.arbitrum-sepolia.ts --network arbitrumSepolia --parameters ./src/parameters/factory/factory.arbitrum-sepolia.json",
 
