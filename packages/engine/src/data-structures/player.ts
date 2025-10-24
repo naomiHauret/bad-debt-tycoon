@@ -24,3 +24,16 @@ export const PLAYER_STATUS = {
   Refunded: 4,
 } as const
 export type PlayerStatusValue = (typeof PLAYER_STATUS)[keyof typeof PLAYER_STATUS]
+
+export interface TournamentPlayer {
+  initialCoins: number
+  coins: number
+  stakeAmount: number 
+  lastDecayTimestamp: number
+  combatCount: number
+  lives: number
+  totalCards: number
+  status: PlayerStatusValue
+  exists: boolean
+  inCombat: boolean
+}
