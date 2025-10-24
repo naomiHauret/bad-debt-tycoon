@@ -6,7 +6,7 @@ import HARDHAT_CONTRACTS from "./hardhat.json"
 
 export const CONTRACTS_BY_NETWORK = {
   "arbitrum-sepolia": ARBITRUM_SEPOLIA_CONTRACTS,
-  "hardhat": HARDHAT_CONTRACTS,
+  hardhat: HARDHAT_CONTRACTS,
 } as const
 
-export type NetworkContractConfig = typeof CONTRACTS_BY_NETWORK[keyof typeof CONTRACTS_BY_NETWORK]
+export type NetworkContractConfig = (typeof CONTRACTS_BY_NETWORK)[keyof typeof CONTRACTS_BY_NETWORK]

@@ -1,18 +1,16 @@
 /** biome-ignore-all lint/style/useNamingConvention: - */
 
-import { writeFileSync, existsSync } from "fs"
+import { existsSync, writeFileSync } from "fs"
 import { join } from "path"
 import type { WhitelistedChainSlug } from "@/engine/assets/chains/config"
 import { WHITELISTED_CHAIN_SLUG, WHITELISTED_SLUG_TO_CHAIN_ID } from "@/engine/assets/chains/config"
 
-const CHAIN_SLUG_TO_FOLDER: Record<WhitelistedChainSlug, string> = Object.entries(
-  WHITELISTED_SLUG_TO_CHAIN_ID
-).reduce(
+const CHAIN_SLUG_TO_FOLDER: Record<WhitelistedChainSlug, string> = Object.entries(WHITELISTED_SLUG_TO_CHAIN_ID).reduce(
   (acc, [slug, chainId]) => {
     acc[slug as WhitelistedChainSlug] = `chain-${chainId}`
     return acc
   },
-  {} as Record<WhitelistedChainSlug, string>
+  {} as Record<WhitelistedChainSlug, string>,
 )
 
 interface ContractMapping {
@@ -92,11 +90,7 @@ const CONTRACT_MAPPINGS: ContractMapping[] = [
 
 function checkDeploymentExists(chainSlug: WhitelistedChainSlug): boolean {
   const folderName = CHAIN_SLUG_TO_FOLDER[chainSlug]
-  const basePath = join(
-    process.cwd(),
-    "ignition/deployments",
-    folderName
-  )
+  const basePath = join(process.cwd(), "ignition/deployments", folderName)
 
   if (!existsSync(basePath)) {
     return false
@@ -126,17 +120,13 @@ function generateNetworkFile(chainSlug: WhitelistedChainSlug): string {
 
   // Generate imports
   const imports: string[] = []
-  
+
   for (const mapping of CONTRACT_MAPPINGS) {
-    imports.push(
-      `import ${mapping.importName} from "${deploymentsPath}/${mapping.artifactPath}"`
-    )
+    imports.push(`import ${mapping.importName} from "${deploymentsPath}/${mapping.artifactPath}"`)
   }
 
   // Add deployed_addresses import
-  imports.push(
-    `\nimport CONTRACT_ADDRESSES from "${deploymentsPath}/deployed_addresses.json"`
-  )
+  imports.push(`\nimport CONTRACT_ADDRESSES from "${deploymentsPath}/deployed_addresses.json"`)
 
   // Generate exports
   const infraExports: string[] = []
@@ -176,20 +166,18 @@ export function generateAllContractConfigs(): void {
 
   for (const chainSlug of Object.values(WHITELISTED_CHAIN_SLUG)) {
     console.log(`\n Processing ${chainSlug}...`)
-    
+
     if (!checkDeploymentExists(chainSlug)) {
-      console.warn(
-        ` Skipping ${chainSlug} - deployment not found or incomplete`
-      )
+      console.warn(` Skipping ${chainSlug} - deployment not found or incomplete`)
       continue
     }
 
     const fileContent = generateNetworkFile(chainSlug)
     const outputPath = join(outputDir, `${chainSlug}.ts`)
-    
+
     writeFileSync(outputPath, fileContent)
     console.log(`Generated ${chainSlug}.ts`)
-    
+
     generatedNetworks.push(chainSlug)
   }
 
@@ -199,9 +187,7 @@ export function generateAllContractConfigs(): void {
   }
 
   console.log("\nContract configuration generation complete!")
-  console.log(
-    `📊 Generated configs for ${generatedNetworks.length} network(s): ${generatedNetworks.join(", ")}`
-  )
+  console.log(`📊 Generated configs for ${generatedNetworks.length} network(s): ${generatedNetworks.join(", ")}`)
 }
 
 // Run if executed directly

@@ -1,7 +1,7 @@
 import type { Address } from "viem"
+import type { WhitelistedChainId } from "@/engine/assets/chains/config"
 import PYUSD from "./pyusd/definition.json"
 import USDC from "./usdc/definition.json"
-import { type WhitelistedChainId } from "@/engine/assets/chains/config"
 
 export interface WhitelistedTokenDefinition {
   id: string

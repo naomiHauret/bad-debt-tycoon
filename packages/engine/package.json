@@ -10,7 +10,7 @@
     "./game/catalog/objectives": "./src/assets/catalog/objectives.ts",
 
     "./config/chains": "./src/assets/chains/config.ts",
-    
+
     "./contracts/hardhat": "./src/assets/contracts/hardhat.ts",
     "./contracts/arbitrum-sepolia": "./src/assets/contracts/arbitrum-sepolia.ts",
 

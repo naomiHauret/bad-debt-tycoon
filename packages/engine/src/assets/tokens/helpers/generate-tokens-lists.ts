@@ -1,9 +1,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import {
-  type WhitelistedTokenDefinition,
-} from "../whitelist/config"
 import { WHITELISTED_CHAIN_ID_TO_SLUG, type WhitelistedChainId } from "@/engine/assets/chains/config"
+import type { WhitelistedTokenDefinition } from "../whitelist/config"
 
 const WHITELIST_DIR = "./src/assets/tokens/whitelist"
 const OUTPUT_DIR = "./src/assets/tokens"
