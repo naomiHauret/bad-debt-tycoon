@@ -1,5 +1,5 @@
 /* Generated file - do not edit manually */
-import usdc from "./whitelist/usdc/definition.json"
+import usdc from './whitelist/usdc/definition.json';
 
 export const TOKEN_LIST = [
   {
@@ -7,6 +7,6 @@ export const TOKEN_LIST = [
     name: usdc.name,
     symbol: usdc.symbol,
     decimals: usdc.decimals,
-    address: usdc.deployment["84532"],
-  },
-] as const
+    address: usdc.deployment["84532"]
+  }
+] as const;
