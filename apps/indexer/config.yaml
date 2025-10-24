@@ -2,11 +2,11 @@
 name: bad-debt-tycoon-indexer
 networks:
   - id: 421614
-    start_block: 208021583
+    start_block: 208126783
     contracts:
       - name: TournamentTokenWhitelist
         address:
-          - 0xbe9230990c17d5e75466e294e10AA7D5C46F06cD
+          - 0xEBF62F608009997B231E68a11C7Ad98d00D71Dc3
         handler: src/EventHandlers.ts
         events:
           - event: TokenPaused(address indexed token, string reason)
@@ -15,19 +15,19 @@ networks:
 
       - name: TournamentDeckCatalog
         address:
-          - 0xEc59ED8BF20c02FE125dFa0C323B7a38F61a30ec
+          - 0xA85E1767b0e10fc002161a8B4E48280b50A1f0A1
         handler: src/EventHandlers.ts
         events:
           - event: CardPaused(uint8 indexed cardId, uint32 timestamp)
-          - event: CardRegistered(uint8 indexed cardId, uint8 category, uint16 baseWeight)
+          - event: CardRegistered(uint8 indexed cardId, uint8 category, uint8 trigger, uint8 mysteryGrantCard, uint16 baseWeight, bytes effectData)
           - event: CardUnpaused(uint8 indexed cardId, uint32 timestamp)
           - event: ObjectivePaused(uint8 indexed objectiveId, uint32 timestamp)
-          - event: ObjectiveRegistered(uint8 indexed objectiveId, uint8 objectiveType)
+          - event: ObjectiveRegistered(uint8 indexed objectiveId, uint8 objectiveType, bytes targetData)
           - event: ObjectiveUnpaused(uint8 indexed objectiveId, uint32 timestamp)
 
       - name: TournamentRegistry
         address:
-          - 0xA0adcd5f2C4b792b509A9180074f0bA369196DaC
+          - 0xd142B03ed7fDB5B72d600D74376e2465C68Cb5bB
         handler: src/EventHandlers.ts
         events:
           - event: TournamentStatusUpdated(address indexed hub, uint8 oldStatus, uint8 newStatus)
@@ -77,9 +77,9 @@ networks:
           - event: TournamentStarted(uint32 startTime, uint32 endTime, uint32 exitWindowStart)
           - event: TournamentEnded( uint256 winnerCount, uint256 prizePool, uint32 timestamp)
           - event: TournamentCancelled(uint32 timestamp)
-          - event: PlayerJoined(address indexed player,uint256 stakeAmount,uint256 initialCoins, uint32 exitTime)
-          - event: PlayerExited(address indexed player, uint32 exitTime)
-          - event: PlayerForfeited(address indexed player,uint256 penaltyAmount,uint256 refundAmount, uint32 exitTime)
+          - event: PlayerJoined(address indexed player,uint256 stakeAmount,uint256 initialCoins, uint32 timestamp)
+          - event: PlayerExited(address indexed player, uint32 timestamp)
+          - event: PlayerForfeited(address indexed player,uint256 penaltyAmount,uint256 refundAmount, uint32 timestamp)
           - event: RefundClaimed(address indexed player, uint256 amount)
           - event: PrizeClaimed(address indexed player, uint256 amount)
           - event: ExitWindowOpened(uint32 windowStart, uint32 windowEnd)
@@ -87,7 +87,7 @@ networks:
 
       - name: TournamentFactory
         address:
-          - 0x50AADf3898fE8858bd70207d4FE36476121EC973
+          - 0x6e06a14A51869ca77bAe9c43315bb9E90C5bf3AA
         handler: src/EventHandlers.ts
         events:
           - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)

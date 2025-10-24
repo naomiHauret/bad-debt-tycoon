@@ -43,7 +43,10 @@ type TournamentDeckCatalog_CardRegistered {
   id: ID!
   cardId: BigInt!
   category: BigInt!
+  trigger: BigInt!
+  mysteryGrantCard: BigInt!
   baseWeight: BigInt!
+  effectData: String!
 }
 
 type TournamentDeckCatalog_CardUnpaused {
@@ -62,6 +65,7 @@ type TournamentDeckCatalog_ObjectiveRegistered {
   id: ID!
   objectiveId: BigInt!
   objectiveType: BigInt!
+  targetData: String!
 }
 
 type TournamentDeckCatalog_ObjectiveUnpaused {
@@ -150,13 +154,13 @@ type TournamentHub_PlayerJoined {
     player: String!
     stakeAmount: BigInt!
     initialCoins: BigInt!
-    exitTime: BigInt!
+    timestamp: BigInt!
 }
 
 type TournamentHub_PlayerExited {
     id: ID!
     player: String!
-    exitTime: BigInt!
+    timestamp: BigInt!
 }
 
 type TournamentHub_PlayerForfeited {
@@ -164,7 +168,7 @@ type TournamentHub_PlayerForfeited {
     player: String!
     penaltyAmount: BigInt!
     refundAmount: BigInt!
-    exitTime: BigInt!
+    timestamp: BigInt!
 }
 
 

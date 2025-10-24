@@ -124,8 +124,10 @@ TournamentDeckCatalog.CardRegistered.handler(async ({ event, context }) => {
     cardId: event.params.cardId,
     category: event.params.category,
     baseWeight: event.params.baseWeight,
+    mysteryGrantCard: event.params.mysteryGrantCard,
+    trigger: event.params.trigger,
+    effectData: event.params.effectData,    
   }
-
   context.TournamentDeckCatalog_CardRegistered.set(entity)
 })
 
@@ -154,6 +156,7 @@ TournamentDeckCatalog.ObjectiveRegistered.handler(async ({ event, context }) => 
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     objectiveId: event.params.objectiveId,
     objectiveType: event.params.objectiveType,
+    targetData: event.params.targetData
   }
 
   context.TournamentDeckCatalog_ObjectiveRegistered.set(entity)
@@ -236,7 +239,7 @@ TournamentHub.PlayerJoined.handler(async ({ event, context }) => {
     player: event.params.player,
     stakeAmount: event.params.stakeAmount,
     initialCoins: event.params.initialCoins,
-    exitTime: event.params.exitTime // @todo - yeah i fucked up, need to rename this, this is what being underslept does to you
+    timestamp: event.params.timestamp 
   }
 
   context.TournamentHub_PlayerJoined.set(entity)
@@ -246,7 +249,7 @@ TournamentHub.PlayerExited.handler(async ({ event, context }) => {
   const entity: TournamentHub_PlayerExited = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     player: event.params.player,
-    exitTime: event.params.exitTime 
+    timestamp: event.params.timestamp 
   }
 
   context.TournamentHub_PlayerExited.set(entity)
@@ -258,7 +261,7 @@ TournamentHub.PlayerForfeited.handler(async ({ event, context }) => {
     player: event.params.player,
     penaltyAmount: event.params.penaltyAmount,
     refundAmount: event.params.refundAmount,
-    exitTime: event.params.exitTime
+    timestamp: event.params.timestamp
   }
 
   context.TournamentHub_PlayerForfeited.set(entity)
