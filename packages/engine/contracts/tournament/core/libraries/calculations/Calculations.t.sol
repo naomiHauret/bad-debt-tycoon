@@ -69,7 +69,6 @@ contract CalculationsTest is Test {
     function test_CalculateExitCost_AtStart() public {
         //  400 initial coins, 50% base (5000 BPS), at hour 0
         uint32 startTime = uint32(block.timestamp);
-        uint32 actualStartTime = startTime;
 
         uint256 exitCost = wrapper.calculateExitCost(
             initialCoins,
@@ -86,7 +85,6 @@ contract CalculationsTest is Test {
     // Should apply exitCostCompoundRateBPS compound after each interval
     function test_CalculateExitCost_ApplyAfterEachInterval() public {
         uint32 startTime = uint32(block.timestamp);
-        uint32 actualStartTime = startTime;
 
         // Fast forward 1 interval
         vm.warp(block.timestamp + gameInterval);

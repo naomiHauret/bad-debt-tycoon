@@ -66,6 +66,7 @@ library TournamentPlayerActions {
         player.totalCards = cardsPerType * 3;
         player.status = TournamentCore.PlayerStatus.Active;
         player.exists = true;
+        player.inCombat = false;
 
         emit PlayerJoined(sender, stakeAmount, initialCoins, timestamp);
     }
