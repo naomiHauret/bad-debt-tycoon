@@ -26,3 +26,10 @@ export interface CombatResolution {
     p2CoinDelta: number
     proofHash: Hash
 }
+
+export interface CombatSession {
+  player1: Address
+  player2: Address
+  startedAt: number
+  active: boolean
+}
