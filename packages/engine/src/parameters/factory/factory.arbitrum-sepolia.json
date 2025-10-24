@@ -3,7 +3,7 @@
     "pythEntropy": "0x549ebba8036ab746611b4ffa1423eb0a4df61440",
     "entropyProvider": "0x6CC14824Ea2918f5De5C2f75A9Da968ad4BD6344",
     "platformAdmin": "0xdf1195ef56a9a068f589b5EE5f6961242e358012",
-    "gameOracle": "0xdf1195ef56a9a068f589b5EE5f6961242e358012",
-    "platformFeePercent": 5
+    "gameOracle": "0xe9478B0CD70A6ee4F4d801e7A4eC3705e3a6Bd41",
+    "platformFeePercent": 2
   }
 }

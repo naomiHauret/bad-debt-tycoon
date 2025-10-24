@@ -83,6 +83,87 @@ bunx hardhat ignition deploy ignition/modules/<Module Name>.ts --network hardhat
 
 > When deploying to a chain (mainnet/testnet), you'll have to ensure the deploying account has funds to send the transaction. On hardhat localhost, no need to.
 
+##### Deploying to a specific network (checklist)
+
+Ensure the following are correctly configured :
+
+- [ ] Token whitelist (`src/assets/tokens/<chain name>.ts`) ; this file is generated automatically, so if a token has erroned/outdated info, you'll have to edit them info in `src/assets/tokens/whitelist/<token name>/definition.json`, then run `bun generate:tokens` to regenerate the whitelist.
+
+The whitelist is used in `./ignition/modules/TokenWhitelist.<chain name>.ts`, so make sure it's correct, otherwise you'll have to pause EACH wrong token manually with the deployer wallet.
+
+- [ ] Catalog (`src/assets/catalog`) ; check cards and objectives definition ; you can always add/pause each card or objective as the platform runner
+
+- [ ] Factory deployment parameters (`src/parameters/factory/factory.<chain name>.json`) :
+
+```json
+{
+  // example values for Arbitrum Sepolia
+
+  "pythEntropy": "0x549ebba8036ab746611b4ffa1423eb0a4df61440", // see Entropy docs for accurate value for your chain
+  "entropyProvider": "0x6CC14824Ea2918f5De5C2f75A9Da968ad4BD6344", // see Entropy docs for accurate value for your chain
+  "platformAdmin": "0xdf1195ef56a9a068f589b5EE5f6961242e358012", // the deployer wallet address
+  "gameOracle": "0xe9478B0CD70A6ee4F4d801e7A4eC3705e3a6Bd41", // the backend wallet address
+  "platformFeePercent": 2 // fee to apply, can't be > 5 (hardcoded) but can be updated as the platform runner
+}
+```
+
+- [ ] Make sure both the oracle wallet and the platform runner wallets are different, uncompromised (fresh wallet is always better), not used anywhere else, and that they have enough ETH in them
+
+Once all of the above is checked double checked, triple checked, you can run `bun run deploy:system:<chain name>` ; see `package.json` for the available networks. This will deploy the entire system and seed both the token whitelist and catalog with objectives and cards, using the values provided in `assets/`.
+
+You should see the following in your terminal:
+
+```
+bun run deploy:system:arb:testnet
+$ bun run deploy:tokenlist:arb:testnet && bun run deploy:catalog:arb:testnet && bun run deploy:registry:arb:testnet && bun run deploy:factory:arb:testnet
+$ bun run generate:tokens && bunx hardhat ignition deploy ignition/modules/TokenWhitelist.arbitrum-sepolia.ts --network arbitrumSepolia
+$ bun run ./src/assets/tokens/helpers/generate-tokens-lists.ts
+Generated base-sepolia.ts with 1 tokens
+Generated arbitrum-sepolia.ts with 2 tokens
+```
+
+Then for each contract, you'll be prompted `✔ Confirm deploy to network <network name> (<network id>)? … y/N` type `y` every time (... or `N` if you don't want the contract to be deployed).
+
+You should see this once all the contracts are deployed successfully:
+
+```
+Deployed Addresses
+
+TokenWhitelist#TournamentTokenWhitelist - 0x...
+DeckCatalog#TournamentDeckCatalog - 0x...
+Registry#TournamentRegistry - 0x...
+TournamentFactorySystem#TournamentCombat - 0x...
+TournamentFactorySystem#TournamentFactoryDeployment - 0x...
+TournamentFactorySystem#TournamentFactoryValidation - 0x...
+TournamentFactorySystem#TournamentLifecycle - 0x...
+TournamentFactorySystem#TournamentMysteryDeck - 0x...
+TournamentFactorySystem#TournamentPlayerActions - 0x...
+TournamentFactorySystem#TournamentRandomizer - 0x...
+TournamentFactorySystem#TournamentRefund - 0x...
+TournamentFactorySystem#TournamentTrading - 0x...
+TournamentFactorySystem#TournamentViews - 0x...
+TournamentFactorySystem#TournamentHubPlayer - 0x...
+TournamentFactorySystem#TournamentHubPrize - 0x...
+TournamentFactorySystem#TournamentHubStatus - 0x...
+TournamentFactorySystem#TournamentHub - 0x...
+TournamentFactorySystem#TournamentFactory - 0x...
+```
+
+Congrats, your potentially exploitable code is now onchain, hope those tests were solid, have fun :)
+
+## Development
+
+```bash
+# Start local blockchain
+bun hardhat node
+
+# Deploy contracts (in another terminal)
+bun run deploy:system:local
+
+# Run tests
+bun run test
+```
+
 ## Architecture
 
 Bad Debt Tycoon uses a **modular smart contract architecture** with a hybrid onchain/offchain design. Each tournament consists of financial state tracked onchain and game logic coordinated by a trusted backend oracle that uses actors to coordinates actions.
