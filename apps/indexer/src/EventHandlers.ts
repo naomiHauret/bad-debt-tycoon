@@ -201,38 +201,6 @@ TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, conte
   );
 })
 
-TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
-  context.addTournamentHub(event.params.hub);
-  context.addTournamentMysteryDeck(event.params.mysteryDeck);
-  context.addTournamentRandomizer(event.params.randomizer);
-  context.addTournamentCombat(event.params.combat);
-  context.addTournamentTrading(event.params.trading);
-
-  context.log.info(
-    `Registered Hub: ${event.params.hub}\n
-    Mystery Deck: ${event.params.mysteryDeck}\n
-    Randomizer: ${event.params.randomizer}\n
-    Trading: ${event.params.trading}
-    Combat: ${event.params.combat}\n`
-  );
-})
-
-TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
-  context.addTournamentHub(event.params.hub);
-  context.addTournamentMysteryDeck(event.params.mysteryDeck);
-  context.addTournamentRandomizer(event.params.randomizer);
-  context.addTournamentCombat(event.params.combat);
-  context.addTournamentTrading(event.params.trading);
-
-  context.log.info(
-    `Registered Hub: ${event.params.hub}\n
-    Mystery Deck: ${event.params.mysteryDeck}\n
-    Randomizer: ${event.params.randomizer}\n
-    Trading: ${event.params.trading}
-    Combat: ${event.params.combat}\n`
-  );
-})
-
 TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => {
   const entity: TournamentFactory_TournamentSystemCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
