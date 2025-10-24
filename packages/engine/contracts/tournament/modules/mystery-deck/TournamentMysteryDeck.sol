@@ -16,16 +16,9 @@ interface ITournamentHub {
         address player,
         TournamentCore.PlayerResources calldata resources
     ) external;
+    function status() external view returns (TournamentCore.Status);
 }
 
-/**
- * Architecture:
- * - Players call action functions directly (draw, shuffle, peek, add, remove)
- * - Contract validates coins and deducts immediately
- * - Events emitted for backend to process effects
- * - Backend may call hub.updatePlayerResources() later to apply card effects
- * - Deck composition/order tracked entirely offchain for privacy
- */
 contract TournamentMysteryDeck is Initializable {
     address public hub;
     uint32 public drawCount;
@@ -34,7 +27,6 @@ contract TournamentMysteryDeck is Initializable {
 
     address public catalog;
     bool public initialized;
-
     address public gameOracle;
 
     uint256 public initialSize;
@@ -51,51 +43,50 @@ contract TournamentMysteryDeck is Initializable {
 
     uint8 public constant MAX_EXCLUDED_CARDS = 50;
     uint8 public constant MAX_PEEK_CARDS = 5;
-    uint256 public constant ADD_REMOVE_COST_MULTIPLIER = 105; // 1.05x = 105/100
+    uint256 public constant ADD_REMOVE_COST_MULTIPLIER = 105;
 
     event DeckInitialized(
         uint256 indexed deckSize,
         uint64 indexed sequenceNumber,
         uint32 timestamp
     );
-
     event CardDrawn(
         address indexed player,
         uint256 costPaid,
         uint256 newDrawCount,
-        uint256 cardsRemaining
+        uint256 cardsRemaining,
+        uint32 timestamp
     );
-
     event DeckShuffled(
         address indexed player,
         uint256 costPaid,
         uint256 newShuffleCount,
         uint32 timestamp
     );
-
     event CardsPeeked(
         address indexed player,
         uint8 cardCount,
-        uint256 costPaid
+        uint256 costPaid,
+        uint32 timestamp
     );
-
     event CardsAdded(
         address indexed player,
         uint8 cardCount,
         uint256 costPaid,
-        uint256 newCardsRemaining
+        uint256 newCardsRemaining,
+        uint32 timestamp
     );
-
     event CardsRemoved(
         address indexed player,
         uint8 cardCount,
         uint256 costPaid,
-        uint256 newCardsRemaining
+        uint256 newCardsRemaining,
+        uint32 timestamp
     );
-
     event ShuffleSeedUpdated(
         uint256 indexed newSeed,
-        bytes32 backendSecretHash
+        bytes32 backendSecretHash,
+        uint32 timestamp
     );
 
     error InvalidAddress();
@@ -110,7 +101,10 @@ contract TournamentMysteryDeck is Initializable {
     error OnlyGameOracle();
     error PlayerNotFound();
     error PlayerNotActive();
+    error PlayerInCombat();
     error InvalidCount();
+    error TournamentNotActive();
+    error ResourceOverflow();
 
     modifier onlyHub() {
         if (msg.sender != hub) revert OnlyHub();
@@ -127,12 +121,19 @@ contract TournamentMysteryDeck is Initializable {
         _;
     }
 
+    modifier tournamentActive() {
+        if (ITournamentHub(hub).status() != TournamentCore.Status.Active)
+            revert TournamentNotActive();
+        _;
+    }
+
     modifier onlyActivePlayer() {
         TournamentCore.PlayerResources memory player = ITournamentHub(hub)
             .getPlayer(msg.sender);
         if (!player.exists) revert PlayerNotFound();
         if (player.status != TournamentCore.PlayerStatus.Active)
             revert PlayerNotActive();
+        if (player.inCombat) revert PlayerInCombat();
         _;
     }
 
@@ -173,15 +174,13 @@ contract TournamentMysteryDeck is Initializable {
     }
 
     function initializeDeck() external onlyHub {
-        // @todo add payable back when using Randomizer
         if (initialized) revert DeckAlreadyInitialized();
 
         uint8[] memory allCardIds = TournamentDeckCatalog(catalog)
             .getAllCardIds();
-        uint256 deckSize = _calculateDeckSize(allCardIds) * 50; // Each card appears 50x
+        uint256 deckSize = _calculateDeckSize(allCardIds) * 50;
 
-        // Seed will be posted by oracle after tournament starts
-        uint64 sequenceNumber = uint64(block.number); // Placeholder for event @todo - change it... if i have the time
+        uint64 sequenceNumber = uint64(block.number);
 
         initialSize = deckSize;
         cardsRemaining = deckSize;
@@ -191,10 +190,14 @@ contract TournamentMysteryDeck is Initializable {
         emit DeckInitialized(deckSize, sequenceNumber, uint32(block.timestamp));
     }
 
-    function drawCard() external deckInitialized onlyActivePlayer {
+    function drawCard()
+        external
+        deckInitialized
+        tournamentActive
+        onlyActivePlayer
+    {
         if (cardsRemaining == 0) revert NotEnoughCardsRemaining();
 
-        // Cache hub to save gas
         address hubCache = hub;
         TournamentCore.PlayerResources memory player = ITournamentHub(hubCache)
             .getCurrentPlayerResources(msg.sender);
@@ -208,11 +211,23 @@ contract TournamentMysteryDeck is Initializable {
         }
 
         ITournamentHub(hubCache).updatePlayerResources(msg.sender, player);
-        emit CardDrawn(msg.sender, drawCost, drawCount, cardsRemaining); // specific card is determined on the backend
+        emit CardDrawn(
+            msg.sender,
+            drawCost,
+            drawCount,
+            cardsRemaining,
+            uint32(block.timestamp)
+        );
     }
 
-    function shuffleDeck() external deckInitialized onlyActivePlayer {
+    function shuffleDeck()
+        external
+        deckInitialized
+        tournamentActive
+        onlyActivePlayer
+    {
         if (cardsRemaining == 0) revert NotEnoughCardsRemaining();
+
         address hubCache = hub;
         uint256 costCache = shuffleCost;
 
@@ -229,13 +244,15 @@ contract TournamentMysteryDeck is Initializable {
         lastShuffleTime = timestamp;
 
         ITournamentHub(hubCache).updatePlayerResources(msg.sender, player);
-
         emit DeckShuffled(msg.sender, costCache, shuffleCount, timestamp);
     }
 
-    function peekCards(uint8 count) external deckInitialized onlyActivePlayer {
+    function peekCards(
+        uint8 count
+    ) external deckInitialized tournamentActive onlyActivePlayer {
         if (count == 0 || count > MAX_PEEK_CARDS) revert InvalidPeekCount();
         if (cardsRemaining < count) revert NotEnoughCardsRemaining();
+
         address hubCache = hub;
         uint256 totalCost = peekCost * count;
 
@@ -249,12 +266,15 @@ contract TournamentMysteryDeck is Initializable {
         }
 
         ITournamentHub(hubCache).updatePlayerResources(msg.sender, player);
-
-        emit CardsPeeked(msg.sender, count, totalCost); // Reveal offchain
+        emit CardsPeeked(msg.sender, count, totalCost, uint32(block.timestamp));
     }
 
-    function addCards(uint8 count) external deckInitialized onlyActivePlayer {
+    function addCards(
+        uint8 count
+    ) external deckInitialized tournamentActive onlyActivePlayer {
         if (count == 0) revert InvalidCount();
+        if (cardsRemaining + count < cardsRemaining) revert ResourceOverflow();
+
         address hubCache = hub;
         uint256 totalCost = (drawCost * ADD_REMOVE_COST_MULTIPLIER * count) /
             100;
@@ -264,20 +284,28 @@ contract TournamentMysteryDeck is Initializable {
 
         if (player.coins < totalCost) revert InsufficientCoins();
 
+        uint32 timestamp = uint32(block.timestamp);
         unchecked {
             player.coins -= totalCost;
             cardsRemaining += count;
         }
 
         ITournamentHub(hubCache).updatePlayerResources(msg.sender, player);
-        emit CardsAdded(msg.sender, count, totalCost, cardsRemaining);
+        emit CardsAdded(
+            msg.sender,
+            count,
+            totalCost,
+            cardsRemaining,
+            timestamp
+        );
     }
 
     function removeCards(
         uint8 count
-    ) external deckInitialized onlyActivePlayer {
+    ) external deckInitialized tournamentActive onlyActivePlayer {
         if (count == 0) revert InvalidCount();
         if (cardsRemaining < count) revert NotEnoughCardsRemaining();
+
         address hubCache = hub;
         uint256 totalCost = (drawCost * ADD_REMOVE_COST_MULTIPLIER * count) /
             100;
@@ -293,7 +321,13 @@ contract TournamentMysteryDeck is Initializable {
         }
 
         ITournamentHub(hubCache).updatePlayerResources(msg.sender, player);
-        emit CardsRemoved(msg.sender, count, totalCost, cardsRemaining);
+        emit CardsRemoved(
+            msg.sender,
+            count,
+            totalCost,
+            cardsRemaining,
+            uint32(block.timestamp)
+        );
     }
 
     function updateShuffleSeed(
@@ -303,7 +337,7 @@ contract TournamentMysteryDeck is Initializable {
         currentShuffleSeed = seed;
         backendSecretHash = secretHash;
 
-        emit ShuffleSeedUpdated(seed, secretHash);
+        emit ShuffleSeedUpdated(seed, secretHash, uint32(block.timestamp));
     }
 
     function _calculateDeckSize(
@@ -352,10 +386,6 @@ contract TournamentMysteryDeck is Initializable {
         )
     {
         return (initialSize, cardsRemaining, drawCount, shuffleCount);
-    }
-
-    function getExcludedCards() external view returns (uint8[] memory) {
-        return excludedCardIds;
     }
 
     function calculateAddRemoveCost(
