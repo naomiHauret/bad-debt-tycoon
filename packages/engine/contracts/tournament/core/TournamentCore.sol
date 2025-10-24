@@ -64,11 +64,9 @@ library TournamentCore {
         uint16 combatCount;
         uint8 lives;
         uint8 totalCards;
-        uint8 rockCards;
-        uint8 paperCards;
-        uint8 scissorsCards;
         PlayerStatus status;
         bool exists;
+        bool inCombat;
     }
 
     uint32 public constant RECOMMENDED_SECONDS_PER_CARD = 360;
