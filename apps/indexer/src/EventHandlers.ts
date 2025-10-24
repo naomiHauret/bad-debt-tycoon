@@ -1,6 +1,7 @@
 /*
  * Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features
  */
+/** biome-ignore-all lint/style/useNamingConvention: <explanation> */
 import {
   TournamentCombat,
   type TournamentCombat_CombatResolved,
@@ -21,8 +22,6 @@ import {
   TournamentHub,
   type TournamentHub_EmergencyCancellation,
   type TournamentHub_ExitWindowOpened,
-  TournamentHub_PlayerResourcesUpdated,
-  type TournamentHub_RandomnessFailure,
   TournamentMysteryDeck,
   type TournamentMysteryDeck_CardDrawn,
   type TournamentMysteryDeck_CardsAdded,
@@ -186,6 +185,54 @@ TournamentFactory.RngOracleUpdated.handler(async ({ event, context }) => {
   context.TournamentFactory_RngOracleUpdated.set(entity)
 })
 
+TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
+  context.addTournamentHub(event.params.hub);
+  context.addTournamentMysteryDeck(event.params.mysteryDeck);
+  context.addTournamentRandomizer(event.params.randomizer);
+  context.addTournamentCombat(event.params.combat);
+  context.addTournamentTrading(event.params.trading);
+
+  context.log.info(
+    `Registered Hub: ${event.params.hub}\n
+    Mystery Deck: ${event.params.mysteryDeck}\n
+    Randomizer: ${event.params.randomizer}\n
+    Trading: ${event.params.trading}
+    Combat: ${event.params.combat}\n`
+  );
+})
+
+TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
+  context.addTournamentHub(event.params.hub);
+  context.addTournamentMysteryDeck(event.params.mysteryDeck);
+  context.addTournamentRandomizer(event.params.randomizer);
+  context.addTournamentCombat(event.params.combat);
+  context.addTournamentTrading(event.params.trading);
+
+  context.log.info(
+    `Registered Hub: ${event.params.hub}\n
+    Mystery Deck: ${event.params.mysteryDeck}\n
+    Randomizer: ${event.params.randomizer}\n
+    Trading: ${event.params.trading}
+    Combat: ${event.params.combat}\n`
+  );
+})
+
+TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
+  context.addTournamentHub(event.params.hub);
+  context.addTournamentMysteryDeck(event.params.mysteryDeck);
+  context.addTournamentRandomizer(event.params.randomizer);
+  context.addTournamentCombat(event.params.combat);
+  context.addTournamentTrading(event.params.trading);
+
+  context.log.info(
+    `Registered Hub: ${event.params.hub}\n
+    Mystery Deck: ${event.params.mysteryDeck}\n
+    Randomizer: ${event.params.randomizer}\n
+    Trading: ${event.params.trading}
+    Combat: ${event.params.combat}\n`
+  );
+})
+
 TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => {
   const entity: TournamentFactory_TournamentSystemCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -206,8 +253,8 @@ TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => 
 TournamentHub.EmergencyCancellation.handler(async ({ event, context }) => {
   const entity: TournamentHub_EmergencyCancellation = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    platformAdmin: event.params.platformAdmin,
-    timestamp: event.params.timestamp,
+    platformAdmin: event.params.admin,
+    timestamp: event.params.calledAtTime,
   }
 
   context.TournamentHub_EmergencyCancellation.set(entity)
@@ -221,15 +268,6 @@ TournamentHub.ExitWindowOpened.handler(async ({ event, context }) => {
   }
 
   context.TournamentHub_ExitWindowOpened.set(entity)
-})
-
-TournamentHub.RandomnessFailure.handler(async ({ event, context }) => {
-  const entity: TournamentHub_RandomnessFailure = {
-    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp,
-  }
-
-  context.TournamentHub_RandomnessFailure.set(entity)
 })
 
 TournamentMysteryDeck.CardDrawn.handler(async ({ event, context }) => {
