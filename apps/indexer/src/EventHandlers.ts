@@ -1,7 +1,7 @@
 /*
  * Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features
  */
-/** biome-ignore-all lint/style/useNamingConvention: <explanation> */
+/** biome-ignore-all lint/style/useNamingConvention: - */
 import {
   TournamentCombat,
   type TournamentCombat_CombatResolved,
@@ -20,6 +20,7 @@ import {
   type TournamentFactory_RngOracleUpdated,
   type TournamentFactory_TournamentSystemCreated,
   TournamentHub,
+  type TournamentHub_PlayerJoined,
   type TournamentHub_EmergencyCancellation,
   type TournamentHub_ExitWindowOpened,
   TournamentMysteryDeck,
@@ -47,6 +48,17 @@ import {
   type TournamentTrading_OfferCancelled,
   type TournamentTrading_OfferCreated,
   type TournamentTrading_TradeExecuted,
+  TournamentHub_PlayerExited,
+  TournamentHub_PlayerForfeited,
+  TournamentHub_TournamentLocked,
+  TournamentHub_TournamentUnlocked,
+  TournamentHub_TournamentPendingStart,
+  TournamentHub_TournamentRevertedToOpen,
+  TournamentHub_TournamentStarted,
+  TournamentHub_TournamentEnded,
+  TournamentHub_TournamentCancelled,
+  TournamentHub_RefundClaimed,
+  TournamentHub_PrizeClaimed,
 } from "generated"
 
 TournamentCombat.CombatResolved.handler(async ({ event, context }) => {
@@ -218,6 +230,128 @@ TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => 
   context.TournamentFactory_TournamentSystemCreated.set(entity)
 })
 
+TournamentHub.PlayerJoined.handler(async ({ event, context }) => {
+  const entity: TournamentHub_PlayerJoined = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    player: event.params.player,
+    stakeAmount: event.params.stakeAmount,
+    initialCoins: event.params.initialCoins,
+    exitTime: event.params.exitTime // @todo - yeah i fucked up, need to rename this, this is what being underslept does to you
+  }
+
+  context.TournamentHub_PlayerJoined.set(entity)
+})
+
+TournamentHub.PlayerExited.handler(async ({ event, context }) => {
+  const entity: TournamentHub_PlayerExited = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    player: event.params.player,
+    exitTime: event.params.exitTime 
+  }
+
+  context.TournamentHub_PlayerExited.set(entity)
+})
+
+TournamentHub.PlayerForfeited.handler(async ({ event, context }) => {
+  const entity: TournamentHub_PlayerForfeited = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    player: event.params.player,
+    penaltyAmount: event.params.penaltyAmount,
+    refundAmount: event.params.refundAmount,
+    exitTime: event.params.exitTime
+  }
+
+  context.TournamentHub_PlayerForfeited.set(entity)
+})
+
+TournamentHub.TournamentLocked.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentLocked = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentLocked.set(entity)
+})
+
+TournamentHub.TournamentUnlocked.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentUnlocked = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentUnlocked.set(entity)
+})
+
+TournamentHub.TournamentPendingStart.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentPendingStart = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentPendingStart.set(entity)
+})
+
+TournamentHub.TournamentRevertedToOpen.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentRevertedToOpen = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentRevertedToOpen.set(entity)
+})
+
+TournamentHub.TournamentStarted.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentStarted = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    startTime: event.params.startTime,
+    endTime: event.params.endTime,
+    exitWindowStart: event.params.exitWindowStart
+  }
+
+  context.TournamentHub_TournamentStarted.set(entity)
+})
+
+TournamentHub.TournamentEnded.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentEnded = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    winnerCount: event.params.winnerCount,
+    prizePool: event.params.prizePool,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentEnded.set(entity)
+})
+
+TournamentHub.TournamentCancelled.handler(async ({ event, context }) => {
+  const entity: TournamentHub_TournamentCancelled = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    timestamp: event.params.timestamp
+  }
+
+  context.TournamentHub_TournamentCancelled.set(entity)
+})
+
+TournamentHub.RefundClaimed.handler(async ({ event, context }) => {
+  const entity: TournamentHub_RefundClaimed = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    player: event.params.player,
+    amount: event.params.amount,
+  }
+
+  context.TournamentHub_RefundClaimed.set(entity)
+})
+
+TournamentHub.PrizeClaimed.handler(async ({ event, context }) => {
+  const entity: TournamentHub_PrizeClaimed = {
+    id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
+    player: event.params.player,
+    amount: event.params.amount,
+  }
+
+  context.TournamentHub_PrizeClaimed.set(entity)
+})
+
+
 TournamentHub.EmergencyCancellation.handler(async ({ event, context }) => {
   const entity: TournamentHub_EmergencyCancellation = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -387,6 +521,7 @@ TournamentRegistry.TournamentStatusUpdated.handler(async ({ event, context }) =>
 
   context.TournamentRegistry_TournamentStatusUpdated.set(entity)
 })
+
 
 TournamentRegistry.TournamentSystemRegistered.handler(async ({ event, context }) => {
   const entity: TournamentRegistry_TournamentSystemRegistered = {

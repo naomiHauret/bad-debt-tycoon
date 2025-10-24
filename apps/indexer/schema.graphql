@@ -99,6 +99,87 @@ type TournamentFactory_TournamentSystemCreated {
   duration: BigInt!
 }
 
+type TournamentHub_TournamentLocked {
+  id: ID!
+  timestamp: BigInt!
+}
+
+type TournamentHub_TournamentUnlocked {
+  id: ID!
+  timestamp: BigInt!
+}
+
+type TournamentRevertedToOpen {
+  id: ID!
+  timestamp: BigInt!
+}
+
+type TournamentHub_TournamentCancelled {
+  id: ID!
+  timestamp: BigInt!
+}
+
+type TournamentHub_TournamentStarted {
+  id: ID!
+  startTime: BigInt!
+  endTime: BigInt!
+  exitWindowStart: BigInt!
+}
+
+type TournamentHub_TournamentEnded {
+  id: ID!
+  winnerCount: BigInt!
+  prizePool: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentHub_TournamentPendingStart {
+  id: ID!
+  timestamp: BigInt!
+}
+
+
+type TournamentHub_TournamentRevertedToOpen {
+  id: ID!
+  timestamp: BigInt!
+}
+
+
+type TournamentHub_PlayerJoined {
+    id: ID!
+    player: String!
+    stakeAmount: BigInt!
+    initialCoins: BigInt!
+    exitTime: BigInt!
+}
+
+type TournamentHub_PlayerExited {
+    id: ID!
+    player: String!
+    exitTime: BigInt!
+}
+
+type TournamentHub_PlayerForfeited {
+    id: ID!
+    player: String!
+    penaltyAmount: BigInt!
+    refundAmount: BigInt!
+    exitTime: BigInt!
+}
+
+
+type TournamentHub_RefundClaimed {
+    id: ID!
+    player: String!
+    amount: BigInt!
+}
+
+type TournamentHub_PrizeClaimed {
+    id: ID!
+    player: String!
+    amount: BigInt!
+}
+
 type TournamentHub_EmergencyCancellation {
   id: ID!
   platformAdmin: String!
