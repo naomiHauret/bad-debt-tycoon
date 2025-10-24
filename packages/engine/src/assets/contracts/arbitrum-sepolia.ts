@@ -1,0 +1,52 @@
+// This file is auto-generated. Do not edit manually.
+// Generated on: 2025-10-24T16:31:24.544Z
+
+import DECK_CATALOG_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/DeckCatalog#TournamentDeckCatalog.json"
+import REGISTRY_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/Registry#TournamentRegistry.json"
+import TOKEN_WHITELIST_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/TokenWhitelist#TournamentTokenWhitelist.json"
+import COMBAT_MODULE from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentCombat.json"
+import FACTORY_CONTRACT from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentFactory.json"
+import HUB_MODULE from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentHub.json"
+import MYSTERY_DECK_MODULE from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentMysteryDeck.json"
+import RANDOMIZER_MODULE from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentRandomizer.json"
+import TRADING_MODULE from "@/engine/ignition/deployments/chain-421614/artifacts/TournamentFactorySystem#TournamentTrading.json"
+
+import CONTRACT_ADDRESSES from "@/engine/ignition/deployments/chain-421614/deployed_addresses.json"
+
+// Infrastructure Contracts
+export const TOURNAMENT_DECK_CATALOG = {
+  address: CONTRACT_ADDRESSES["DeckCatalog#TournamentDeckCatalog"] as `0x${string}`,
+  abi: DECK_CATALOG_CONTRACT.abi,
+}
+
+export const TOURNAMENT_REGISTRY = {
+  address: CONTRACT_ADDRESSES["Registry#TournamentRegistry"] as `0x${string}`,
+  abi: REGISTRY_CONTRACT.abi,
+}
+
+export const TOURNAMENT_TOKEN_WHITELIST = {
+  address: CONTRACT_ADDRESSES["TokenWhitelist#TournamentTokenWhitelist"] as `0x${string}`,
+  abi: TOKEN_WHITELIST_CONTRACT.abi,
+}
+
+export const TOURNAMENT_FACTORY = {
+  address: CONTRACT_ADDRESSES["TournamentFactorySystem#TournamentFactory"] as `0x${string}`,
+  abi: FACTORY_CONTRACT.abi,
+}
+
+// Module Contracts
+export const TOURNAMENT_COMBAT = {
+  abi: COMBAT_MODULE.abi,
+}
+export const TOURNAMENT_HUB = {
+  abi: HUB_MODULE.abi,
+}
+export const TOURNAMENT_MYSTERY_DECK = {
+  abi: MYSTERY_DECK_MODULE.abi,
+}
+export const TOURNAMENT_RANDOMIZER = {
+  abi: RANDOMIZER_MODULE.abi,
+}
+export const TOURNAMENT_TRADING = {
+  abi: TRADING_MODULE.abi,
+}
