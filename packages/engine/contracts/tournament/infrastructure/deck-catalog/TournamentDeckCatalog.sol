@@ -100,12 +100,18 @@ contract TournamentDeckCatalog is Ownable {
     event CardRegistered(
         uint8 indexed cardId,
         CardCategory category,
-        uint16 baseWeight
+        ModifierTrigger trigger,
+        MysteryGrantCard mysteryGrantCard,
+        uint16 baseWeight,
+        bytes effectData
     );
+
     event ObjectiveRegistered(
         uint8 indexed objectiveId,
-        Objective objectiveType
+        Objective objectiveType,
+        bytes targetData
     );
+
     event CardPaused(uint8 indexed cardId, uint32 timestamp);
     event CardUnpaused(uint8 indexed cardId, uint32 timestamp);
     event ObjectivePaused(uint8 indexed objectiveId, uint32 timestamp);
@@ -174,56 +180,14 @@ contract TournamentDeckCatalog is Ownable {
             _cardsByResourceType[card.mysteryGrantCard].push(card.cardId);
         }
 
-        emit CardRegistered(card.cardId, card.category, card.baseWeight);
-    }
-
-    function registerCards(CardDefinition[] calldata cards) external onlyOwner {
-        uint256 length = cards.length;
-
-        unchecked {
-            if (cardCount + length > 255) revert ExceedsMaxCards();
-        }
-
-        for (uint256 i = 0; i < length; ) {
-            CardDefinition calldata card = cards[i];
-            uint8 id = card.cardId;
-
-            if (id == 0) revert InvalidCardId();
-            if (_cards[id].exists) revert CardIdTaken();
-
-            _validateCardDefinition(card);
-
-            _cards[id] = CardDefinition({
-                exists: true,
-                paused: false,
-                cardId: id,
-                category: card.category,
-                trigger: card.trigger,
-                mysteryGrantCard: card.mysteryGrantCard,
-                baseWeight: card.baseWeight,
-                effectData: card.effectData
-            });
-
-            _cardIds.push(id);
-            _cardsByCategory[card.category].push(id);
-
-            if (card.category == CardCategory.Modifier) {
-                _cardsByTrigger[card.trigger].push(id);
-            }
-            if (card.category == CardCategory.Combat) {
-                _cardsByResourceType[card.mysteryGrantCard].push(id);
-            }
-
-            emit CardRegistered(id, card.category, card.baseWeight);
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        unchecked {
-            cardCount += uint8(length);
-        }
+        emit CardRegistered(
+            card.cardId,
+            card.category,
+            card.trigger,
+            card.mysteryGrantCard,
+            card.baseWeight,
+            card.effectData
+        );
     }
 
     function registerObjective(
@@ -250,48 +214,9 @@ contract TournamentDeckCatalog is Ownable {
 
         emit ObjectiveRegistered(
             objective.objectiveId,
-            objective.objectiveType
+            objective.objectiveType,
+            objective.targetData
         );
-    }
-
-    function registerObjectives(
-        ObjectiveDefinition[] calldata objectives
-    ) external onlyOwner {
-        uint256 length = objectives.length;
-
-        unchecked {
-            if (objectiveCount + length > 255) revert ExceedsMaxObjectives();
-        }
-
-        for (uint256 i = 0; i < length; ) {
-            ObjectiveDefinition calldata obj = objectives[i];
-            uint8 id = obj.objectiveId;
-
-            if (id == 0) revert InvalidObjectiveId();
-            if (_objectives[id].exists) revert ObjectiveIdTaken();
-
-            _validateObjectiveDefinition(obj);
-
-            _objectives[id] = ObjectiveDefinition({
-                objectiveId: id,
-                objectiveType: obj.objectiveType,
-                exists: true,
-                paused: false,
-                targetData: obj.targetData
-            });
-
-            _objectiveIds.push(id);
-
-            emit ObjectiveRegistered(id, obj.objectiveType);
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        unchecked {
-            objectiveCount += uint8(length);
-        }
     }
 
     function pauseCard(uint8 card) external onlyOwner onlyExistingCards(card) {
