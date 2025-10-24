@@ -1,0 +1,10 @@
+{
+  "id": "pyusd",
+  "name": "PayPal USD",
+  "symbol": "PYUSD",
+  "decimals": 6,
+  "src": "/tokens/whitelist/pyusd/512x512.png",
+  "deployment": {
+    "421614": "0x637A1259C6afd7E3AdF63993cA7E58BB438aB1B1"
+  }
+}
