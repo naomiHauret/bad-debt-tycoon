@@ -1,0 +1,22 @@
+/* Based on https://github.com/tsconfig/bases/blob/501da2bcd640cf95c95805783e1012b992338f28/bases/node22.json */
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/engine/ignition/*": ["./ignition/*"],
+      "@/engine/assets/*": ["./src/assets/*"],
+      "@/engine/data-structures/*": ["./src/data-structures/*"],
+      "@/engine/features/*": ["./src/features/*"],
+      "@/engine/contracts/params/*": ["./src/parameters/*"]
+
+    },
+    "lib": ["es2023"],
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist"
+  }
+}
