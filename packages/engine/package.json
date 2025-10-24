@@ -2,10 +2,18 @@
   "name": "@bdt/engine",
   "type": "module",
   "exports": {
+    "./systems/catalog": "./src/features/catalog/index.ts",
+    "./data-structures": "./src/data-structures/index.ts",
+
     "./game/catalog": "./src/assets/catalog/catalog.ts",
     "./game/catalog/cards": "./src/assets/catalog/cards.ts",
     "./game/catalog/objectives": "./src/assets/catalog/objectives.ts",
+
+    "./config/chains": "./src/assets/chains/config.ts",
+    
     "./contracts/hardhat": "./src/assets/contracts/hardhat.ts",
+    "./contracts/arbitrum-sepolia": "./src/assets/contracts/arbitrum-sepolia.ts",
+
     "./tokens/whitelist": "./src/assets/tokens/whitelist/config.ts",
     "./tokens/arbitrum-sepolia": "./src/assets/tokens/arbitrum-sepolia.ts",
     "./tokens/usdc": "./src/assets/tokens/whitelist/usdc/definition.json",
@@ -14,6 +22,8 @@
   "scripts": {
     "build": "bun run generate:tokens && bunx hardhat build",
     "generate:tokens": "bun run ./src/assets/tokens/helpers/generate-tokens-lists.ts",
+    "generate:contracts": "bun run src/assets/contracts/helpers/generate-contracts-config.ts",
+
     "test": "bunx hardhat test",
     "test:solidity": "bunx hardhat test solidity",
     "test:nodejs": "bun run build && bunx hardhat test nodejs",

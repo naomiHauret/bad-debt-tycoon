@@ -5,6 +5,7 @@ export {
   prepareCardForRegistration,
   validateCardTemplate,
 } from "./features/catalog/cards"
+
 export {
   encodeObjectiveTarget,
   generateAllObjectivesForType,
