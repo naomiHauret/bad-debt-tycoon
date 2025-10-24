@@ -1,0 +1,277 @@
+type TournamentCombat_CombatResolved {
+  id: ID!
+  resolution_0: BigInt!
+  resolution_1: String!
+  resolution_2: String!
+  resolution_3: BigInt!
+  resolution_4: BigInt!
+  resolution_5: BigInt!
+  resolution_6: BigInt!
+  resolution_7: Boolean!
+  resolution_8: BigInt!
+  resolution_9: BigInt!
+  resolution_10: BigInt!
+  resolution_11: BigInt!
+  resolution_12: String!
+  combatId: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentCombat_CombatStarted {
+  id: ID!
+  combatId: BigInt!
+  p1: String!
+  p2: String!
+  timestamp: BigInt!
+}
+
+type TournamentCombat_CombatTimedOut {
+  id: ID!
+  combatId: BigInt!
+  p1: String!
+  p2: String!
+  timestamp: BigInt!
+}
+
+type TournamentDeckCatalog_CardPaused {
+  id: ID!
+  cardId: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentDeckCatalog_CardRegistered {
+  id: ID!
+  cardId: BigInt!
+  category: BigInt!
+  baseWeight: BigInt!
+}
+
+type TournamentDeckCatalog_CardUnpaused {
+  id: ID!
+  cardId: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentDeckCatalog_ObjectivePaused {
+  id: ID!
+  objectiveId: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentDeckCatalog_ObjectiveRegistered {
+  id: ID!
+  objectiveId: BigInt!
+  objectiveType: BigInt!
+}
+
+type TournamentDeckCatalog_ObjectiveUnpaused {
+  id: ID!
+  objectiveId: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentFactory_OwnershipTransferred {
+  id: ID!
+  previousOwner: String!
+  newOwner: String!
+}
+
+type TournamentFactory_PlatformFeeUpdated {
+  id: ID!
+  newFee: BigInt!
+}
+
+type TournamentFactory_RngOracleUpdated {
+  id: ID!
+  newOracle: String!
+}
+
+type TournamentFactory_TournamentSystemCreated {
+  id: ID!
+  hub: String!
+  combat: String!
+  mysteryDeck: String!
+  trading: String!
+  randomizer: String!
+  creator: String!
+  stakeToken: String!
+  startTimestamp: BigInt!
+  duration: BigInt!
+}
+
+type TournamentHub_EmergencyCancellation {
+  id: ID!
+  platformAdmin: String!
+  timestamp: BigInt!
+}
+
+type TournamentHub_ExitWindowOpened {
+  id: ID!
+  windowStart: BigInt!
+  windowEnd: BigInt!
+}
+
+type TournamentHub_RandomnessFailure {
+  id: ID!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_CardDrawn {
+  id: ID!
+  player: String!
+  costPaid: BigInt!
+  newDrawCount: BigInt!
+  cardsRemaining: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_CardsAdded {
+  id: ID!
+  player: String!
+  cardCount: BigInt!
+  costPaid: BigInt!
+  newCardsRemaining: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_CardsPeeked {
+  id: ID!
+  player: String!
+  cardCount: BigInt!
+  costPaid: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_CardsRemoved {
+  id: ID!
+  player: String!
+  cardCount: BigInt!
+  costPaid: BigInt!
+  newCardsRemaining: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_DeckInitialized {
+  id: ID!
+  deckSize: BigInt!
+  sequenceNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_DeckShuffled {
+  id: ID!
+  player: String!
+  costPaid: BigInt!
+  newShuffleCount: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentMysteryDeck_ShuffleSeedUpdated {
+  id: ID!
+  newSeed: BigInt!
+  backendSecretHash: String!
+  timestamp: BigInt!
+}
+
+type TournamentRandomizer_CompleteSeedRevealed {
+  id: ID!
+  completeSeed: String!
+  backendSecret: String!
+  timestamp: BigInt!
+}
+
+type TournamentRandomizer_MysteryDeckSet {
+  id: ID!
+  mysteryDeck: String!
+}
+
+type TournamentRandomizer_SeedGenerated {
+  id: ID!
+  sequenceNumber: BigInt!
+  seedIndex: BigInt!
+  seed: String!
+  timestamp: BigInt!
+}
+
+type TournamentRandomizer_SeedRequestCancelled {
+  id: ID!
+  sequenceNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentRandomizer_SeedRequested {
+  id: ID!
+  sequenceNumber: BigInt!
+  requester: String!
+  seedIndex: BigInt!
+  timestamp: BigInt!
+}
+
+type TournamentRegistry_TournamentStatusUpdated {
+  id: ID!
+  hub: String!
+  oldStatus: BigInt!
+  newStatus: BigInt!
+}
+
+type TournamentRegistry_TournamentSystemRegistered {
+  id: ID!
+  hub: String!
+  combat: String!
+  mysteryDeck: String!
+  trading: String!
+  randomizer: String!
+  initialStatus: BigInt!
+}
+
+type TournamentTokenWhitelist_TokenPaused {
+  id: ID!
+  token: String!
+  reason: String!
+}
+
+type TournamentTokenWhitelist_TokenUnpaused {
+  id: ID!
+  token: String!
+}
+
+type TournamentTokenWhitelist_TokenWhitelisted {
+  id: ID!
+  token: String!
+}
+
+type TournamentTrading_OfferCancelled {
+  id: ID!
+  offerId: BigInt!
+  creator: String!
+  timestamp: BigInt!
+}
+
+type TournamentTrading_OfferCreated {
+  id: ID!
+  offerId: BigInt!
+  creator: String!
+  offered_0: BigInt!
+  offered_1: BigInt!
+  offered_2: BigInt!
+  offered_3: BigInt!
+  offered_4: BigInt!
+  requested_0: BigInt!
+  requested_1: BigInt!
+  requested_2: BigInt!
+  requested_3: BigInt!
+  requested_4: BigInt!
+  expiresAt: BigInt!
+  createdAt: BigInt!
+}
+
+type TournamentTrading_TradeExecuted {
+  id: ID!
+  offerId: BigInt!
+  creator: String!
+  acceptor: String!
+  creatorTotalCardsDelta: BigInt!
+  acceptorTotalCardsDelta: BigInt!
+  timestamp: BigInt!
+}
+

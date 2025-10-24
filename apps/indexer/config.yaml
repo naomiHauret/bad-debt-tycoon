@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: bad-debt-tycoon-indexer
+networks:
+  - id: 421614
+    start_block: 208021583
+    contracts:
+      - name: TournamentTokenWhitelist
+        address:
+          - 0xbe9230990c17d5e75466e294e10AA7D5C46F06cD
+        handler: src/EventHandlers.ts
+        events:
+          - event: TokenPaused(address indexed token, string reason)
+          - event: TokenUnpaused(address indexed token)
+          - event: TokenWhitelisted(address indexed token)
+
+      - name: TournamentDeckCatalog
+        address:
+          - 0xEc59ED8BF20c02FE125dFa0C323B7a38F61a30ec
+        handler: src/EventHandlers.ts
+        events:
+          - event: CardPaused(uint8 indexed cardId, uint32 timestamp)
+          - event: CardRegistered(uint8 indexed cardId, uint8 category, uint16 baseWeight)
+          - event: CardUnpaused(uint8 indexed cardId, uint32 timestamp)
+          - event: ObjectivePaused(uint8 indexed objectiveId, uint32 timestamp)
+          - event: ObjectiveRegistered(uint8 indexed objectiveId, uint8 objectiveType)
+          - event: ObjectiveUnpaused(uint8 indexed objectiveId, uint32 timestamp)
+
+      - name: TournamentRegistry
+        address:
+          - 0xA0adcd5f2C4b792b509A9180074f0bA369196DaC
+        handler: src/EventHandlers.ts
+        events:
+          - event: TournamentStatusUpdated(address indexed hub, uint8 oldStatus, uint8 newStatus)
+          - event: TournamentSystemRegistered(address indexed hub, address indexed combat, address mysteryDeck, address trading, address randomizer, uint8 initialStatus)
+
+      - name: TournamentCombat
+        handler: src/EventHandlers.ts
+        events:
+          - event: CombatResolved((uint256,address,address,uint8,uint8,uint8,uint8,bool,int16,int16,int256,int256,bytes32) resolution, uint256 combatId, uint32 timestamp)
+          - event: CombatStarted(uint256 indexed combatId, address indexed p1, address indexed p2, uint32 timestamp)
+          - event: CombatTimedOut(uint256 indexed combatId, address indexed p1, address indexed p2, uint32 timestamp)
+
+      - name: TournamentMysteryDeck
+        handler: src/EventHandlers.ts
+        events:
+          - event: CardDrawn(address indexed player, uint256 costPaid, uint256 newDrawCount, uint256 cardsRemaining, uint32 timestamp)
+          - event: CardsAdded(address indexed player, uint8 cardCount, uint256 costPaid, uint256 newCardsRemaining, uint32 timestamp)
+          - event: CardsPeeked(address indexed player, uint8 cardCount, uint256 costPaid, uint32 timestamp)
+          - event: CardsRemoved(address indexed player, uint8 cardCount, uint256 costPaid, uint256 newCardsRemaining, uint32 timestamp)
+          - event: DeckInitialized(uint256 indexed deckSize, uint64 indexed sequenceNumber, uint32 timestamp)
+          - event: DeckShuffled(address indexed player, uint256 costPaid, uint256 newShuffleCount, uint32 timestamp)
+          - event: ShuffleSeedUpdated(uint256 indexed newSeed, bytes32 backendSecretHash, uint32 timestamp)
+
+      - name: TournamentRandomizer
+        handler: src/EventHandlers.ts
+        events:
+          - event: CompleteSeedRevealed(bytes32 completeSeed, bytes32 backendSecret, uint32 timestamp)
+          - event: MysteryDeckSet(address indexed mysteryDeck)
+          - event: SeedGenerated(uint64 indexed sequenceNumber, uint256 seedIndex, bytes32 indexed seed, uint32 timestamp)
+          - event: SeedRequestCancelled(uint64 indexed sequenceNumber, uint32 timestamp)
+          - event: SeedRequested(uint64 indexed sequenceNumber, address indexed requester, uint256 seedIndex, uint32 timestamp)
+
+      - name: TournamentTrading
+        handler: src/EventHandlers.ts
+        events:
+          - event: OfferCancelled(uint256 indexed offerId, address indexed creator, uint32 timestamp)
+          - event: OfferCreated(uint256 indexed offerId, address indexed creator, (uint8,uint256,uint8,uint8,uint8) offered, (uint8,uint256,uint8,uint8,uint8) requested, uint32 expiresAt, uint32 createdAt)
+          - event: TradeExecuted(uint256 indexed offerId, address indexed creator, address indexed acceptor, uint8 creatorTotalCardsDelta, uint8 acceptorTotalCardsDelta, uint32 timestamp)
+
+      - name: TournamentHub
+        handler: src/EventHandlers.ts
+        events:
+          - event: TournamentLocked(uint32 timestamp)
+          - event: TournamentUnlocked(uint32 timestamp)
+          - event: TournamentPendingStart(uint32 timestamp)
+          - event: TournamentRevertedToOpen(uint32 timestamp)
+          - event: TournamentStarted(uint32 startTime, uint32 endTime, uint32 exitWindowStart)
+          - event: TournamentEnded( uint256 winnerCount, uint256 prizePool, uint32 timestamp)
+          - event: TournamentCancelled(uint32 timestamp)
+          - event: PlayerJoined(address indexed player,uint256 stakeAmount,uint256 initialCoins, uint32 exitTime)
+          - event: PlayerExited(address indexed player, uint32 exitTime)
+          - event: PlayerForfeited(address indexed player,uint256 penaltyAmount,uint256 refundAmount, uint32 exitTime)
+          - event: RefundClaimed(address indexed player, uint256 amount)
+          - event: PrizeClaimed(address indexed player, uint256 amount)
+          - event: ExitWindowOpened(uint32 windowStart, uint32 windowEnd)
+          - event: EmergencyCancellation(address indexed admin, uint32 calledAtTime)
+
+      - name: TournamentFactory
+        address:
+          - 0x50AADf3898fE8858bd70207d4FE36476121EC973
+        handler: src/EventHandlers.ts
+        events:
+          - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+          - event: PlatformFeeUpdated(uint8 newFee)
+          - event: RngOracleUpdated(address indexed newOracle)
+          - event: TournamentSystemCreated(address indexed hub, address indexed combat, address mysteryDeck, address trading, address randomizer, address indexed creator, address stakeToken, uint32 startTimestamp, uint32 duration)
+unordered_multichain_mode: true
+preload_handlers: true
