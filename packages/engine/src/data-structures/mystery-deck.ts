@@ -9,5 +9,4 @@ export interface MysteryDeckModuleDefinition {
   drawCost: Pick<TournamentRules, "deckDrawCost">
   shuffleCost: Pick<TournamentRules, "deckShuffleCost">
   peekCost: Pick<TournamentRules, "deckPeekCost">
-  gameOracle: Pick<TournamentRules, "deckOracle">
 }

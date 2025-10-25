@@ -63,12 +63,12 @@ export interface TournamentRules {
   minPlayers: number
   maxPlayers: number
   startPlayerCount: number
-  startPoolAmount: number
+  startPoolAmount: bigint
   stakeToken: Address
-  minStake: number
-  maxStake: number
+  minStake: bigint
+  maxStake: bigint
   coinConversionRate: number
-  decayAmount: number
+  decayAmount: bigint
   initialLives: number
   cardsPerType: number
   exitLivesRequired: number
@@ -82,10 +82,9 @@ export interface TournamentRules {
   forfeitMinPenalty: number
   deckCatalog: Address
   excludedCardIds: Array<number>
-  deckDrawCost: number
-  deckShuffleCost: number
-  deckPeekCost: number
-  deckOracle: Address
+  deckDrawCost: bigint
+  deckShuffleCost: bigint
+  deckPeekCost: bigint
 }
 
 export const RECOMMENDED_SECONDS_PER_CARD = 360
