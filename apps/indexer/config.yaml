@@ -2,11 +2,11 @@
 name: bad-debt-tycoon-indexer
 networks:
   - id: 421614
-    start_block: 208322270
+    start_block: 208322262
     contracts:
       - name: TournamentTokenWhitelist
         address:
-          - 0xEBF62F608009997B231E68a11C7Ad98d00D71Dc3
+          - 0xbC796dB28c2936B6524Ab2dC394eD710B9631ADF
         handler: src/EventHandlers.ts
         events:
           - event: TokenPaused(address indexed token, string reason)
@@ -15,7 +15,7 @@ networks:
 
       - name: TournamentDeckCatalog
         address:
-          - 0xA85E1767b0e10fc002161a8B4E48280b50A1f0A1
+          - 0x8cc7B6C80F16270A16BF1cE0e2C385c0011d0892
         handler: src/EventHandlers.ts
         events:
           - event: CardPaused(uint8 indexed cardId, uint32 timestamp)
@@ -27,7 +27,7 @@ networks:
 
       - name: TournamentRegistry
         address:
-          - 0xd142B03ed7fDB5B72d600D74376e2465C68Cb5bB
+          - 0x8C821690a9F63d3428103b13b0B36d10CF22Fee0
         handler: src/EventHandlers.ts
         events:
           - event: TournamentStatusUpdated(address indexed hub, uint8 oldStatus, uint8 newStatus)
@@ -87,7 +87,7 @@ networks:
 
       - name: TournamentFactory
         address:
-          - 0x6e06a14A51869ca77bAe9c43315bb9E90C5bf3AA
+          - 0xA2Ee8A26F5522a729C5Eb6aDC7BcdF3B9DE220C6
         handler: src/EventHandlers.ts
         events:
           - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
