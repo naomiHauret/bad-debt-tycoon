@@ -53,7 +53,6 @@ library TournamentCore {
         uint256 deckDrawCost;
         uint256 deckShuffleCost;
         uint256 deckPeekCost;
-        address deckOracle;
     }
 
     struct PlayerResources {

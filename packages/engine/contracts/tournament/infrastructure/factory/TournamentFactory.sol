@@ -50,9 +50,7 @@ contract TournamentFactory is Ownable {
         address trading,
         address randomizer,
         address indexed creator,
-        address stakeToken,
-        uint32 startTimestamp,
-        uint32 duration
+        TournamentCore.Params params
     );
 
     event PlatformFeeUpdated(uint8 newFee);
@@ -151,9 +149,7 @@ contract TournamentFactory is Ownable {
             system.trading,
             system.randomizer,
             msg.sender,
-            params.stakeToken,
-            params.startTimestamp,
-            params.duration
+            params
         );
 
         return system.hub;

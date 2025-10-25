@@ -46,8 +46,7 @@ contract LifecycleTest is Test {
                 excludedCardIds: excludedCards,
                 deckDrawCost: 50,
                 deckShuffleCost: 30,
-                deckPeekCost: 20,
-                deckOracle: address(0x3)
+                deckPeekCost: 20
             });
     }
 

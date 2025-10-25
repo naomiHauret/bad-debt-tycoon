@@ -39,8 +39,7 @@ library TournamentFactoryValidation {
         if (params.deckDrawCost == 0) revert InvalidDeckCost();
         if (params.deckShuffleCost == 0) revert InvalidDeckCost();
         if (params.deckPeekCost == 0) revert InvalidDeckCost();
-        if (params.deckCatalog == address(0) || params.deckOracle == address(0))
-            revert InvalidAddress();
+        if (params.deckCatalog == address(0)) revert InvalidAddress();
 
         validateTimingParams(params);
         validatePlayerParams(params);
