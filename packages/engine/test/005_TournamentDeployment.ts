@@ -96,7 +96,6 @@ describe("Tournament Deployment", () => {
         deckDrawCost: 50,
         deckShuffleCost: 30,
         deckPeekCost: 20,
-        deckOracle: "0x0000000000000000000000000000000000000456",
       }
 
       await factory.write.createTournamentSystem([tournamentParams], {
@@ -142,7 +141,6 @@ describe("Tournament Deployment", () => {
         deckDrawCost: 50,
         deckShuffleCost: 30,
         deckPeekCost: 20,
-        deckOracle: "0x0000000000000000000000000000000000000456",
       }
       await factory.write.createTournamentSystem([tournamentParams], {
         account: platformRunner.account,
