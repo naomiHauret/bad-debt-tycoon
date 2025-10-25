@@ -93,6 +93,7 @@ networks:
           - event: OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
           - event: PlatformFeeUpdated(uint8 newFee)
           - event: RngOracleUpdated(address indexed newOracle)
-          - event: TournamentSystemCreated(address indexed hub, address indexed combat, address mysteryDeck, address trading, address randomizer, address indexed creator, address stakeToken, uint32 startTimestamp, uint32 duration)
+          # absolute hell, km
+          - event: TournamentSystemCreated(address indexed hub, address indexed combat, address mysteryDeck, address trading, address randomizer, address indexed creator, (uint32,uint32,uint32,uint16,uint16,uint16,uint256,address,uint256,uint256,uint40,uint256,uint8,uint8,uint8,uint16,uint16,uint8,uint8,bool,uint8,uint8,uint8,address,uint8[],uint256,uint256,uint256))
 unordered_multichain_mode: true
 preload_handlers: true

@@ -20,9 +20,20 @@ import {
   type TournamentFactory_RngOracleUpdated,
   type TournamentFactory_TournamentSystemCreated,
   TournamentHub,
-  type TournamentHub_PlayerJoined,
   type TournamentHub_EmergencyCancellation,
   type TournamentHub_ExitWindowOpened,
+  type TournamentHub_PlayerExited,
+  type TournamentHub_PlayerForfeited,
+  type TournamentHub_PlayerJoined,
+  type TournamentHub_PrizeClaimed,
+  type TournamentHub_RefundClaimed,
+  type TournamentHub_TournamentCancelled,
+  type TournamentHub_TournamentEnded,
+  type TournamentHub_TournamentLocked,
+  type TournamentHub_TournamentPendingStart,
+  type TournamentHub_TournamentRevertedToOpen,
+  type TournamentHub_TournamentStarted,
+  type TournamentHub_TournamentUnlocked,
   TournamentMysteryDeck,
   type TournamentMysteryDeck_CardDrawn,
   type TournamentMysteryDeck_CardsAdded,
@@ -48,35 +59,25 @@ import {
   type TournamentTrading_OfferCancelled,
   type TournamentTrading_OfferCreated,
   type TournamentTrading_TradeExecuted,
-  TournamentHub_PlayerExited,
-  TournamentHub_PlayerForfeited,
-  TournamentHub_TournamentLocked,
-  TournamentHub_TournamentUnlocked,
-  TournamentHub_TournamentPendingStart,
-  TournamentHub_TournamentRevertedToOpen,
-  TournamentHub_TournamentStarted,
-  TournamentHub_TournamentEnded,
-  TournamentHub_TournamentCancelled,
-  TournamentHub_RefundClaimed,
-  TournamentHub_PrizeClaimed,
 } from "generated"
 
 TournamentCombat.CombatResolved.handler(async ({ event, context }) => {
+  const res = event.params.resolution;
   const entity: TournamentCombat_CombatResolved = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    resolution_0: event.params.resolution[0],
-    resolution_1: event.params.resolution[1],
-    resolution_2: event.params.resolution[2],
-    resolution_3: event.params.resolution[3],
-    resolution_4: event.params.resolution[4],
-    resolution_5: event.params.resolution[5],
-    resolution_6: event.params.resolution[6],
-    resolution_7: event.params.resolution[7],
-    resolution_8: event.params.resolution[8],
-    resolution_9: event.params.resolution[9],
-    resolution_10: event.params.resolution[10],
-    resolution_11: event.params.resolution[11],
-    resolution_12: event.params.resolution[12],
+    // Resolution struct fields
+    player1: res[1],
+    player2: res[2],
+    p1CardsBurned: res[3],
+    p2CardsBurned: res[4],
+    rpsOutcome: res[5], // 0=P1Win, 1=P2Win, 2=Draw
+    decision: res[6],
+    modifierApplied: res[7],
+    p1LifeDelta: res[8],
+    p2LifeDelta: res[9],
+    p1CoinDelta: res[10],
+    p2CoinDelta: res[11],
+    proofHash: res[12],
     combatId: event.params.combatId,
     timestamp: event.params.timestamp,
   }
@@ -126,7 +127,7 @@ TournamentDeckCatalog.CardRegistered.handler(async ({ event, context }) => {
     baseWeight: event.params.baseWeight,
     mysteryGrantCard: event.params.mysteryGrantCard,
     trigger: event.params.trigger,
-    effectData: event.params.effectData,    
+    effectData: event.params.effectData,
   }
   context.TournamentDeckCatalog_CardRegistered.set(entity)
 })
@@ -156,7 +157,7 @@ TournamentDeckCatalog.ObjectiveRegistered.handler(async ({ event, context }) => 
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     objectiveId: event.params.objectiveId,
     objectiveType: event.params.objectiveType,
-    targetData: event.params.targetData
+    targetData: event.params.targetData,
   }
 
   context.TournamentDeckCatalog_ObjectiveRegistered.set(entity)
@@ -201,22 +202,26 @@ TournamentFactory.RngOracleUpdated.handler(async ({ event, context }) => {
 })
 
 TournamentFactory.TournamentSystemCreated.contractRegister(async ({ event, context }) => {
-  context.addTournamentHub(event.params.hub);
-  context.addTournamentMysteryDeck(event.params.mysteryDeck);
-  context.addTournamentRandomizer(event.params.randomizer);
-  context.addTournamentCombat(event.params.combat);
-  context.addTournamentTrading(event.params.trading);
+  context.addTournamentHub(event.params.hub)
+  context.addTournamentMysteryDeck(event.params.mysteryDeck)
+  context.addTournamentRandomizer(event.params.randomizer)
+  context.addTournamentCombat(event.params.combat)
+  context.addTournamentTrading(event.params.trading)
 
   context.log.info(
     `Registered Hub: ${event.params.hub}\n
     Mystery Deck: ${event.params.mysteryDeck}\n
     Randomizer: ${event.params.randomizer}\n
     Trading: ${event.params.trading}
-    Combat: ${event.params.combat}\n`
-  );
+    Combat: ${event.params.combat}\n`,
+  )
 })
 
 TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => {
+  // Envio should expose the tuple - check generated types for exact name
+  // It might be event.params.param6 or event.params.params_6 or similar
+  const params = event.params._6; // Adjust based on generated types
+  
   const entity: TournamentFactory_TournamentSystemCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     hub: event.params.hub,
@@ -225,12 +230,39 @@ TournamentFactory.TournamentSystemCreated.handler(async ({ event, context }) => 
     trading: event.params.trading,
     randomizer: event.params.randomizer,
     creator: event.params.creator,
-    stakeToken: event.params.stakeToken,
-    startTimestamp: event.params.startTimestamp,
-    duration: event.params.duration,
-  }
-
-  context.TournamentFactory_TournamentSystemCreated.set(entity)
+    
+    // Flatten the params tuple
+    startTimestamp: params[0],
+    duration: params[1],
+    gameInterval: params[2],
+    minPlayers: params[3],
+    maxPlayers: params[4],
+    startPlayerCount: params[5],
+    startPoolAmount: params[6],
+    stakeToken: params[7],
+    minStake: params[8],
+    maxStake: params[9],
+    coinConversionRate: params[10],
+    decayAmount: params[11],
+    initialLives: params[12],
+    cardsPerType: params[13],
+    exitLivesRequired: params[14],
+    exitCostBasePercentBPS: params[15],
+    exitCostCompoundRateBPS: params[16],
+    creatorFeePercent: params[17],
+    platformFeePercent: params[18],
+    forfeitAllowed: params[19],
+    forfeitPenaltyType: params[20],
+    forfeitMaxPenalty: params[21],
+    forfeitMinPenalty: params[22],
+    deckCatalog: params[23],
+    excludedCardIds: params[24],
+    deckDrawCost: params[25],
+    deckShuffleCost: params[26],
+    deckPeekCost: params[27],
+  };
+  
+  context.TournamentFactory_TournamentSystemCreated.set(entity);
 })
 
 TournamentHub.PlayerJoined.handler(async ({ event, context }) => {
@@ -239,7 +271,7 @@ TournamentHub.PlayerJoined.handler(async ({ event, context }) => {
     player: event.params.player,
     stakeAmount: event.params.stakeAmount,
     initialCoins: event.params.initialCoins,
-    timestamp: event.params.timestamp 
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_PlayerJoined.set(entity)
@@ -249,7 +281,7 @@ TournamentHub.PlayerExited.handler(async ({ event, context }) => {
   const entity: TournamentHub_PlayerExited = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     player: event.params.player,
-    timestamp: event.params.timestamp 
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_PlayerExited.set(entity)
@@ -261,7 +293,7 @@ TournamentHub.PlayerForfeited.handler(async ({ event, context }) => {
     player: event.params.player,
     penaltyAmount: event.params.penaltyAmount,
     refundAmount: event.params.refundAmount,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_PlayerForfeited.set(entity)
@@ -270,7 +302,7 @@ TournamentHub.PlayerForfeited.handler(async ({ event, context }) => {
 TournamentHub.TournamentLocked.handler(async ({ event, context }) => {
   const entity: TournamentHub_TournamentLocked = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentLocked.set(entity)
@@ -279,7 +311,7 @@ TournamentHub.TournamentLocked.handler(async ({ event, context }) => {
 TournamentHub.TournamentUnlocked.handler(async ({ event, context }) => {
   const entity: TournamentHub_TournamentUnlocked = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentUnlocked.set(entity)
@@ -288,7 +320,7 @@ TournamentHub.TournamentUnlocked.handler(async ({ event, context }) => {
 TournamentHub.TournamentPendingStart.handler(async ({ event, context }) => {
   const entity: TournamentHub_TournamentPendingStart = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentPendingStart.set(entity)
@@ -297,7 +329,7 @@ TournamentHub.TournamentPendingStart.handler(async ({ event, context }) => {
 TournamentHub.TournamentRevertedToOpen.handler(async ({ event, context }) => {
   const entity: TournamentHub_TournamentRevertedToOpen = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentRevertedToOpen.set(entity)
@@ -308,7 +340,7 @@ TournamentHub.TournamentStarted.handler(async ({ event, context }) => {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     startTime: event.params.startTime,
     endTime: event.params.endTime,
-    exitWindowStart: event.params.exitWindowStart
+    exitWindowStart: event.params.exitWindowStart,
   }
 
   context.TournamentHub_TournamentStarted.set(entity)
@@ -319,7 +351,7 @@ TournamentHub.TournamentEnded.handler(async ({ event, context }) => {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     winnerCount: event.params.winnerCount,
     prizePool: event.params.prizePool,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentEnded.set(entity)
@@ -328,7 +360,7 @@ TournamentHub.TournamentEnded.handler(async ({ event, context }) => {
 TournamentHub.TournamentCancelled.handler(async ({ event, context }) => {
   const entity: TournamentHub_TournamentCancelled = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    timestamp: event.params.timestamp
+    timestamp: event.params.timestamp,
   }
 
   context.TournamentHub_TournamentCancelled.set(entity)
@@ -353,7 +385,6 @@ TournamentHub.PrizeClaimed.handler(async ({ event, context }) => {
 
   context.TournamentHub_PrizeClaimed.set(entity)
 })
-
 
 TournamentHub.EmergencyCancellation.handler(async ({ event, context }) => {
   const entity: TournamentHub_EmergencyCancellation = {
@@ -525,7 +556,6 @@ TournamentRegistry.TournamentStatusUpdated.handler(async ({ event, context }) =>
   context.TournamentRegistry_TournamentStatusUpdated.set(entity)
 })
 
-
 TournamentRegistry.TournamentSystemRegistered.handler(async ({ event, context }) => {
   const entity: TournamentRegistry_TournamentSystemRegistered = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
@@ -580,20 +610,26 @@ TournamentTrading.OfferCancelled.handler(async ({ event, context }) => {
 })
 
 TournamentTrading.OfferCreated.handler(async ({ event, context }) => {
+    const offered = event.params.offered;
+  const requested = event.params.requested;
   const entity: TournamentTrading_OfferCreated = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     offerId: event.params.offerId,
     creator: event.params.creator,
-    offered_0: event.params.offered[0],
-    offered_1: event.params.offered[1],
-    offered_2: event.params.offered[2],
-    offered_3: event.params.offered[3],
-    offered_4: event.params.offered[4],
-    requested_0: event.params.requested[0],
-    requested_1: event.params.requested[1],
-    requested_2: event.params.requested[2],
-    requested_3: event.params.requested[3],
-    requested_4: event.params.requested[4],
+  
+    // Offered bundle: ResourceBundle { lives, coins, rockCards, paperCards, scissorsCards }
+    offeredLives: offered[0],
+    offeredCoins: offered[1],
+    offeredRock: offered[2],
+    offeredPaper: offered[3],
+    offeredScissors: offered[4],
+    
+    // Requested bundle
+    requestedLives: requested[0],
+    requestedCoins: requested[1],
+    requestedRock: requested[2],
+    requestedPaper: requested[3],
+    requestedScissors: requested[4],
     expiresAt: event.params.expiresAt,
     createdAt: event.params.createdAt,
   }

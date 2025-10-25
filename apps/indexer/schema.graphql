@@ -1,19 +1,18 @@
 type TournamentCombat_CombatResolved {
   id: ID!
-  resolution_0: BigInt!
-  resolution_1: String!
-  resolution_2: String!
-  resolution_3: BigInt!
-  resolution_4: BigInt!
-  resolution_5: BigInt!
-  resolution_6: BigInt!
-  resolution_7: Boolean!
-  resolution_8: BigInt!
-  resolution_9: BigInt!
-  resolution_10: BigInt!
-  resolution_11: BigInt!
-  resolution_12: String!
   combatId: BigInt!
+  player1: String!
+  player2: String!
+  p1CardsBurned: BigInt!
+  p2CardsBurned: BigInt!
+  rpsOutcome: BigInt!
+  decision: BigInt!
+  modifierApplied: Boolean!
+  p1LifeDelta: BigInt!
+  p2LifeDelta: BigInt!
+  p1CoinDelta: BigInt!
+  p2CoinDelta: BigInt!
+  proofHash: String
   timestamp: BigInt!
 }
 
@@ -98,9 +97,35 @@ type TournamentFactory_TournamentSystemCreated {
   trading: String!
   randomizer: String!
   creator: String!
-  stakeToken: String!
   startTimestamp: BigInt!
   duration: BigInt!
+  gameInterval: BigInt!
+  minPlayers: BigInt!
+  maxPlayers: BigInt!
+  startPlayerCount: BigInt!
+  startPoolAmount: BigInt!
+  stakeToken: String!
+  minStake: BigInt!
+  maxStake: BigInt!
+  coinConversionRate: BigInt!
+  decayAmount: BigInt!
+  initialLives: BigInt!
+  cardsPerType: BigInt!
+  exitLivesRequired: BigInt!
+  exitCostBasePercentBPS: BigInt!
+  exitCostCompoundRateBPS: BigInt!
+  creatorFeePercent: BigInt!
+  platformFeePercent: BigInt!
+  forfeitAllowed: Boolean!
+  forfeitPenaltyType: BigInt!
+  forfeitMaxPenalty: BigInt!
+  forfeitMinPenalty: BigInt!
+  deckCatalog: String!
+  excludedCardIds: [BigInt!]!
+  deckDrawCost: BigInt!
+  deckShuffleCost: BigInt!
+  deckPeekCost: BigInt!
+  
 }
 
 type TournamentHub_TournamentLocked {
@@ -142,46 +167,43 @@ type TournamentHub_TournamentPendingStart {
   timestamp: BigInt!
 }
 
-
 type TournamentHub_TournamentRevertedToOpen {
   id: ID!
   timestamp: BigInt!
 }
 
-
 type TournamentHub_PlayerJoined {
-    id: ID!
-    player: String!
-    stakeAmount: BigInt!
-    initialCoins: BigInt!
-    timestamp: BigInt!
+  id: ID!
+  player: String!
+  stakeAmount: BigInt!
+  initialCoins: BigInt!
+  timestamp: BigInt!
 }
 
 type TournamentHub_PlayerExited {
-    id: ID!
-    player: String!
-    timestamp: BigInt!
+  id: ID!
+  player: String!
+  timestamp: BigInt!
 }
 
 type TournamentHub_PlayerForfeited {
-    id: ID!
-    player: String!
-    penaltyAmount: BigInt!
-    refundAmount: BigInt!
-    timestamp: BigInt!
+  id: ID!
+  player: String!
+  penaltyAmount: BigInt!
+  refundAmount: BigInt!
+  timestamp: BigInt!
 }
 
-
 type TournamentHub_RefundClaimed {
-    id: ID!
-    player: String!
-    amount: BigInt!
+  id: ID!
+  player: String!
+  amount: BigInt!
 }
 
 type TournamentHub_PrizeClaimed {
-    id: ID!
-    player: String!
-    amount: BigInt!
+  id: ID!
+  player: String!
+  amount: BigInt!
 }
 
 type TournamentHub_EmergencyCancellation {
@@ -336,16 +358,16 @@ type TournamentTrading_OfferCreated {
   id: ID!
   offerId: BigInt!
   creator: String!
-  offered_0: BigInt!
-  offered_1: BigInt!
-  offered_2: BigInt!
-  offered_3: BigInt!
-  offered_4: BigInt!
-  requested_0: BigInt!
-  requested_1: BigInt!
-  requested_2: BigInt!
-  requested_3: BigInt!
-  requested_4: BigInt!
+  offeredLives: BigInt!
+  offeredCoins: BigInt!
+  offeredRock: BigInt!
+  offeredPaper: BigInt!
+  offeredScissors: BigInt!
+  requestedLives: BigInt!
+  requestedCoins: BigInt!
+  requestedRock: BigInt!
+  requestedPaper: BigInt!
+  requestedScissors: BigInt!
   expiresAt: BigInt!
   createdAt: BigInt!
 }
