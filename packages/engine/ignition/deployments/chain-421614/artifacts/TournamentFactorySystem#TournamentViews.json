@@ -1,0 +1,584 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "TournamentViews",
+  "sourceName": "contracts/tournament/core/libraries/views/Views.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "NotFound",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum TournamentCore.Status",
+          "name": "status",
+          "type": "TournamentCore.Status"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "player",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint32",
+          "name": "actualStartTime",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint16",
+          "name": "exitCostBasePercentBPS",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint16",
+          "name": "exitCostCompoundRateBPS",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint32",
+          "name": "gameInterval",
+          "type": "uint32"
+        }
+      ],
+      "name": "calculateExitCost",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "player",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint32",
+          "name": "endTime",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "duration",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "forfeitPenaltyType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "forfeitMaxPenalty",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "forfeitMinPenalty",
+          "type": "uint8"
+        }
+      ],
+      "name": "calculateForfeitPenalty",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalStaked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalForfeitPenalties",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "platformFeePercent",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "creatorFeePercent",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "winnersLength",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculatePrizePerWinner",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum TournamentCore.Status",
+          "name": "status",
+          "type": "TournamentCore.Status"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "player",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "currentCoins",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "exitCost",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "exitLivesRequired",
+          "type": "uint8"
+        }
+      ],
+      "name": "canExit",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "player",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "decayAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "gameInterval",
+          "type": "uint32"
+        }
+      ],
+      "name": "getCurrentCoins",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "player",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "currentCoins",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCurrentPlayerResources",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "initialCoins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "stakeAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "lastDecayTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "combatCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "lives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "totalCards",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum TournamentCore.PlayerStatus",
+              "name": "status",
+              "type": "TournamentCore.PlayerStatus"
+            },
+            {
+              "internalType": "bool",
+              "name": "exists",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "inCombat",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct TournamentCore.PlayerResources",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint32",
+          "name": "exitWindowStart",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "endTime",
+          "type": "uint32"
+        }
+      ],
+      "name": "getExitWindow",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "windowStart",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "windowEnd",
+          "type": "uint32"
+        },
+        {
+          "internalType": "bool",
+          "name": "isOpen",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60808060405234601957610d23908161001e823930815050f35b5f80fdfe60806040526004361015610011575f80fd5b5f3560e01c80631345884d1461060f5780631c520d0f146105145780631f8e8ab51461043c578063204477ec146103f857806364fd2e8f146103e15780639c6c2a2c146103805780639cff963c14610344578063ada4fb25146102d9578063afe4209a146101a4578063bf2cab1514610158578063dad5453214610101578063fb5a5133146100c95763fe250278146100a8575f80fd5b60206100bf6100b636610734565b93929092610a20565b6040519015158152f35b366003190161018081126100fd57610140136100fd5760206100f56100ec610651565b610144356109ee565b604051908152f35b5f80fd5b60403660031901126100fd5760043563ffffffff811681036100fd5760243563ffffffff811681036100fd5761013e63ffffffff916060936109ca565b919290816040519416845216602083015215156040820152f35b60206100f56101663661077c565b6001600160a01b03165f818152838652604080822060010154928252938652839020600301546006830154925463ffffffff941c8416931690610c9f565b6101ad3661077c565b6101b8929192610824565b506001600160a01b0381165f9081526020839052604090206003015460481c60ff16156102ca5760018060a01b03165f5260205260405f206101f86106ee565b90805482526003600182015491602084019283526002810154604085015201546060830163ffffffff8216815261ffff8260201c16608085015260ff8260301c1660a085015260ff8260381c1660c085015260ff8260401c169460058610156102b65760ff6102a4936102b29760e0880152818160481c16151561010088015260501c16151561012086015263ffffffff845192511663ffffffff6006830154925460401c1692610c9f565b905260405191829182610665565b0390f35b634e487b7160e01b5f52602160045260245ffd5b63c5723b5160e01b5f5260045ffd5b6101e03660031901126100fd5760043560068110156100fd576101403660231901126100fd57610307610651565b906101843561ffff811681036100fd576101a43561ffff811681036100fd576101c4359163ffffffff831683036100fd576020946100f59461098b565b60a03660031901126100fd5760443560ff811681036100fd5760643560ff811681036100fd576020916100f59160843591602435600435610c53565b36600319016101e081126100fd57610140136100fd576101443563ffffffff811681036100fd576103af610651565b906101843560ff811681036100fd576103c6610723565b6101c4359160ff831683036100fd576020946100f59461095e565b60206100f56103ef36610734565b939290926108eb565b6101c03660031901126100fd5760043560068110156100fd576101403660231901126100fd576100bf60209161042c610723565b906101843590610164359061086a565b366003190161016081126100fd57610140136100fd5761045a6106ee565b600435815260208101906024358252604435604082015260643563ffffffff811681036100fd57606082015260843561ffff811681036100fd57608082015260a43560ff811681036100fd5760a082015260c43560ff811681036100fd5760c082015260e43560058110156100fd5760e08201526101043580151581036100fd57610100820152610124359182151583036100fd576102b292610120830152610501610824565b5061014435905260405191829182610665565b60403660031901126100fd576004356024356001600160a01b03811681036100fd5761053e610824565b506001600160a01b0381165f9081526020839052604090206003015460481c60ff16156102ca5760018060a01b03165f5260205260405f2060036105806106ee565b9180548352600181015460208401526002810154604084015201549063ffffffff8216606082015261ffff8260201c16608082015260ff8260301c1660a082015260ff8260381c1660c082015260ff8260401c1660058110156102b6576102b29260ff9160e0840152818160481c16151561010084015260501c16151561012082015260405191829182610665565b60803660031901126100fd5760443563ffffffff811681036100fd57606435906001600160a01b03821682036100fd576020916100f5916024356004356107a6565b610164359063ffffffff821682036100fd57565b91909161014081019280518252602081015160208301526040810151604083015263ffffffff606082015116606083015261ffff608082015116608083015260ff60a08201511660a083015260ff60c08201511660c083015260e081015160058110156102b65761012091829160e0850152610100810151151561010085015201511515910152565b60405190610140820182811067ffffffffffffffff82111761070f57604052565b634e487b7160e01b5f52604160045260245ffd5b6101a4359060ff821682036100fd57565b60a09060031901126100fd57600435906024359060443560068110156100fd579060643563ffffffff811681036100fd57906084356001600160a01b03811681036100fd5790565b60609060031901126100fd5760043590602435906044356001600160a01b03811681036100fd5790565b90919260018060a01b0381165f528160205260ff600360405f20015460481c161561081c5760018060a01b03165f52602052600260405f200154600763ffffffff835460201c169201549160ff8360501c169060028210156102b6576108199460ff808660601c169560581c1693610b34565b90565b505050505f90565b61082c6106ee565b905f82525f60208301525f60408301525f60608301525f60808301525f60a08301525f60c08301525f60e08301525f6101008301525f610120830152565b9290919260068110156102b6576003036108e4576101043560058110156100fd576108e45761012435801590811581036100fd57506108e45760c43560ff8116918282036100fd5760ff915016116108de5760e43560ff8116908181036100fd57506108de57106108da57600190565b5f90565b50505f90565b5050505f90565b909160068110156102b65760030361081c576001600160a01b0384165f9081526020829052604090206003015460481c60ff161561081c576108199360018060a01b03165f5260205260405f205463ffffffff6007830154925460401c169261ffff808460281c169360181c1691610bf1565b9392919061010435801590811581036100fd57506109825761081994604435610b34565b50505050505f90565b939291909360068110156102b6576003148015906109b4575b61081c5761081993602435610bf1565b5061012435801590811581036100fd57506109a4565b91818363ffffffff811642106109e6575063ffffffff16421090565b935091505f90565b9061010435801590811581036100fd57506108de576064359163ffffffff831683036100fd5761081992602435610c9f565b919390929360068110156102b65760030361081c5760018060a01b03165f5260205260405f209160038301549060ff8260481c161561081c5760ff8260401c1660058110156102b65761081c5760078301549060ff8260101c1660ff8460301c16106109825760ff8360381c1661098257610ab963ffffffff93610ad0956001880154866006830154925460401c169687931690610c9f565b94549061ffff808460281c169360181c1691610bf1565b111590565b9063ffffffff8091169116039063ffffffff8211610aef57565b634e487b7160e01b5f52601160045260245ffd5b81810292918115918404141715610aef57565b8115610b20570490565b634e487b7160e01b5f52601260045260245ffd5b91610b55949160ff6064979516155f14610b59575050509060ff1690610b03565b0490565b60ff91610b9d9163ffffffff42168063ffffffff8316115f14610bc65763ffffffff85610b8a610b95938395610ad5565b975b16961686610b03565b911690610b16565b9316808410610bbe575b50808311610bb6575b50610b03565b91505f610bb0565b92505f610ba7565b505063ffffffff610b9581855f97610b8c565b9063ffffffff16908115610b205763ffffffff160490565b610c236127109161ffff63ffffffff610c1a610c2b9899610c158498844216610ad5565b610bd9565b16951690610b03565b049316610b03565b61271001908161271011610aef5761271091610b5591610b03565b91908203918211610aef57565b90939291938315610982578101809111610aef57610c95610c9a926064610c8e60ff82610c85826108199b1688610b03565b04931685610b03565b0492610c46565b610c46565b610b16565b92919063ffffffff42169063ffffffff8116821115610ce657610cd593610c15610cce9263ffffffff94610ad5565b1690610b03565b808211156108de5761081991610c46565b505050509056fea26469706673582212200c2eb777c0ce14bf8939f5019575d0a5c555db93f16dda385b2c60d95caafe7d64736f6c634300081c0033",
+  "deployedBytecode": "0x60806040526004361015610011575f80fd5b5f3560e01c80631345884d1461060f5780631c520d0f146105145780631f8e8ab51461043c578063204477ec146103f857806364fd2e8f146103e15780639c6c2a2c146103805780639cff963c14610344578063ada4fb25146102d9578063afe4209a146101a4578063bf2cab1514610158578063dad5453214610101578063fb5a5133146100c95763fe250278146100a8575f80fd5b60206100bf6100b636610734565b93929092610a20565b6040519015158152f35b366003190161018081126100fd57610140136100fd5760206100f56100ec610651565b610144356109ee565b604051908152f35b5f80fd5b60403660031901126100fd5760043563ffffffff811681036100fd5760243563ffffffff811681036100fd5761013e63ffffffff916060936109ca565b919290816040519416845216602083015215156040820152f35b60206100f56101663661077c565b6001600160a01b03165f818152838652604080822060010154928252938652839020600301546006830154925463ffffffff941c8416931690610c9f565b6101ad3661077c565b6101b8929192610824565b506001600160a01b0381165f9081526020839052604090206003015460481c60ff16156102ca5760018060a01b03165f5260205260405f206101f86106ee565b90805482526003600182015491602084019283526002810154604085015201546060830163ffffffff8216815261ffff8260201c16608085015260ff8260301c1660a085015260ff8260381c1660c085015260ff8260401c169460058610156102b65760ff6102a4936102b29760e0880152818160481c16151561010088015260501c16151561012086015263ffffffff845192511663ffffffff6006830154925460401c1692610c9f565b905260405191829182610665565b0390f35b634e487b7160e01b5f52602160045260245ffd5b63c5723b5160e01b5f5260045ffd5b6101e03660031901126100fd5760043560068110156100fd576101403660231901126100fd57610307610651565b906101843561ffff811681036100fd576101a43561ffff811681036100fd576101c4359163ffffffff831683036100fd576020946100f59461098b565b60a03660031901126100fd5760443560ff811681036100fd5760643560ff811681036100fd576020916100f59160843591602435600435610c53565b36600319016101e081126100fd57610140136100fd576101443563ffffffff811681036100fd576103af610651565b906101843560ff811681036100fd576103c6610723565b6101c4359160ff831683036100fd576020946100f59461095e565b60206100f56103ef36610734565b939290926108eb565b6101c03660031901126100fd5760043560068110156100fd576101403660231901126100fd576100bf60209161042c610723565b906101843590610164359061086a565b366003190161016081126100fd57610140136100fd5761045a6106ee565b600435815260208101906024358252604435604082015260643563ffffffff811681036100fd57606082015260843561ffff811681036100fd57608082015260a43560ff811681036100fd5760a082015260c43560ff811681036100fd5760c082015260e43560058110156100fd5760e08201526101043580151581036100fd57610100820152610124359182151583036100fd576102b292610120830152610501610824565b5061014435905260405191829182610665565b60403660031901126100fd576004356024356001600160a01b03811681036100fd5761053e610824565b506001600160a01b0381165f9081526020839052604090206003015460481c60ff16156102ca5760018060a01b03165f5260205260405f2060036105806106ee565b9180548352600181015460208401526002810154604084015201549063ffffffff8216606082015261ffff8260201c16608082015260ff8260301c1660a082015260ff8260381c1660c082015260ff8260401c1660058110156102b6576102b29260ff9160e0840152818160481c16151561010084015260501c16151561012082015260405191829182610665565b60803660031901126100fd5760443563ffffffff811681036100fd57606435906001600160a01b03821682036100fd576020916100f5916024356004356107a6565b610164359063ffffffff821682036100fd57565b91909161014081019280518252602081015160208301526040810151604083015263ffffffff606082015116606083015261ffff608082015116608083015260ff60a08201511660a083015260ff60c08201511660c083015260e081015160058110156102b65761012091829160e0850152610100810151151561010085015201511515910152565b60405190610140820182811067ffffffffffffffff82111761070f57604052565b634e487b7160e01b5f52604160045260245ffd5b6101a4359060ff821682036100fd57565b60a09060031901126100fd57600435906024359060443560068110156100fd579060643563ffffffff811681036100fd57906084356001600160a01b03811681036100fd5790565b60609060031901126100fd5760043590602435906044356001600160a01b03811681036100fd5790565b90919260018060a01b0381165f528160205260ff600360405f20015460481c161561081c5760018060a01b03165f52602052600260405f200154600763ffffffff835460201c169201549160ff8360501c169060028210156102b6576108199460ff808660601c169560581c1693610b34565b90565b505050505f90565b61082c6106ee565b905f82525f60208301525f60408301525f60608301525f60808301525f60a08301525f60c08301525f60e08301525f6101008301525f610120830152565b9290919260068110156102b6576003036108e4576101043560058110156100fd576108e45761012435801590811581036100fd57506108e45760c43560ff8116918282036100fd5760ff915016116108de5760e43560ff8116908181036100fd57506108de57106108da57600190565b5f90565b50505f90565b5050505f90565b909160068110156102b65760030361081c576001600160a01b0384165f9081526020829052604090206003015460481c60ff161561081c576108199360018060a01b03165f5260205260405f205463ffffffff6007830154925460401c169261ffff808460281c169360181c1691610bf1565b9392919061010435801590811581036100fd57506109825761081994604435610b34565b50505050505f90565b939291909360068110156102b6576003148015906109b4575b61081c5761081993602435610bf1565b5061012435801590811581036100fd57506109a4565b91818363ffffffff811642106109e6575063ffffffff16421090565b935091505f90565b9061010435801590811581036100fd57506108de576064359163ffffffff831683036100fd5761081992602435610c9f565b919390929360068110156102b65760030361081c5760018060a01b03165f5260205260405f209160038301549060ff8260481c161561081c5760ff8260401c1660058110156102b65761081c5760078301549060ff8260101c1660ff8460301c16106109825760ff8360381c1661098257610ab963ffffffff93610ad0956001880154866006830154925460401c169687931690610c9f565b94549061ffff808460281c169360181c1691610bf1565b111590565b9063ffffffff8091169116039063ffffffff8211610aef57565b634e487b7160e01b5f52601160045260245ffd5b81810292918115918404141715610aef57565b8115610b20570490565b634e487b7160e01b5f52601260045260245ffd5b91610b55949160ff6064979516155f14610b59575050509060ff1690610b03565b0490565b60ff91610b9d9163ffffffff42168063ffffffff8316115f14610bc65763ffffffff85610b8a610b95938395610ad5565b975b16961686610b03565b911690610b16565b9316808410610bbe575b50808311610bb6575b50610b03565b91505f610bb0565b92505f610ba7565b505063ffffffff610b9581855f97610b8c565b9063ffffffff16908115610b205763ffffffff160490565b610c236127109161ffff63ffffffff610c1a610c2b9899610c158498844216610ad5565b610bd9565b16951690610b03565b049316610b03565b61271001908161271011610aef5761271091610b5591610b03565b91908203918211610aef57565b90939291938315610982578101809111610aef57610c95610c9a926064610c8e60ff82610c85826108199b1688610b03565b04931685610b03565b0492610c46565b610c46565b610b16565b92919063ffffffff42169063ffffffff8116821115610ce657610cd593610c15610cce9263ffffffff94610ad5565b1690610b03565b808211156108de5761081991610c46565b505050509056fea26469706673582212200c2eb777c0ce14bf8939f5019575d0a5c555db93f16dda385b2c60d95caafe7d64736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/tournament/core/libraries/views/Views.sol",
+  "buildInfoId": "solc-0_8_28-cbc571b33ac17e7d30d9bc79b647ffeb73c6506b"
+}

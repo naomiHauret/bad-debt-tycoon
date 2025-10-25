@@ -1,0 +1,20 @@
+{
+  "TokenWhitelist#TournamentTokenWhitelist": "0xbC796dB28c2936B6524Ab2dC394eD710B9631ADF",
+  "DeckCatalog#TournamentDeckCatalog": "0x8cc7B6C80F16270A16BF1cE0e2C385c0011d0892",
+  "Registry#TournamentRegistry": "0x8C821690a9F63d3428103b13b0B36d10CF22Fee0",
+  "TournamentFactorySystem#TournamentTrading": "0x4011EE5016e51D22cE950d70D057085eB06a541B",
+  "TournamentFactorySystem#TournamentCombat": "0x5919BD74950d003731c831D5FFaF5642c045767E",
+  "TournamentFactorySystem#TournamentFactoryDeployment": "0x39d0Aed0569983348e0680dD025E1307963F720B",
+  "TournamentFactorySystem#TournamentFactoryValidation": "0x1903D8353e1ECdDB1B09fcADB1E5fD541B39Ae39",
+  "TournamentFactorySystem#TournamentLifecycle": "0xEA35Abafe9c40C134e133251f7cb8b3AC9306afA",
+  "TournamentFactorySystem#TournamentMysteryDeck": "0x5d73Ae30D41E9Aa2bD68472c8F8f50b31245332A",
+  "TournamentFactorySystem#TournamentPlayerActions": "0x9Ba8e3cB33c99d2ee611Aa0DD2be06769A9AB1e5",
+  "TournamentFactorySystem#TournamentRandomizer": "0xEDd329EbdcF5318808844C41000aDCfd0547396a",
+  "TournamentFactorySystem#TournamentRefund": "0xff5931dBcE75d2beaEA187FB75b2CD4cBB629eFC",
+  "TournamentFactorySystem#TournamentViews": "0x832923e1331A660b1f2aB8a223497dec8D658b90",
+  "TournamentFactorySystem#TournamentHubPrize": "0x1084156E36d987dDe80C1cE9cB1cF413Cf70AEDb",
+  "TournamentFactorySystem#TournamentHubPlayer": "0x1DC6ff72fE2ba24D43E326B754141CB12Dd5eaa7",
+  "TournamentFactorySystem#TournamentHubStatus": "0x5CE9cBD916cc3C46d4AC400B8064ED5dC6802206",
+  "TournamentFactorySystem#TournamentHub": "0xFbD57344D1479c11e5643AdC52708A16F8caf28D",
+  "TournamentFactorySystem#TournamentFactory": "0xA2Ee8A26F5522a729C5Eb6aDC7BcdF3B9DE220C6"
+}

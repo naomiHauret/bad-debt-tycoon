@@ -1,0 +1,749 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "TournamentFactoryValidation",
+  "sourceName": "contracts/tournament/infrastructure/factory/libraries/validation/FactoryValidation.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "CombinedFeesTooHigh",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CreatorFeeTooHigh",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DurationTooShort",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DurationTooShortForInterval",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ForfeitMinPenaltyExceedsMax",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "IntervalTooShort",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidCardsPerType",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidCoinConversionRate",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidDecayAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidDeckCost",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidExitCostBase",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidExitLivesRequired",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidForfeitPenaltyBounds",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidInitialLives",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidStakeToken",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidStartPlayerCount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidStartTimestamp",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MaxPlayersInvalid",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MinPlayersInvalid",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MinStakeExceedsMaxStake",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "startTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "duration",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "gameInterval",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "minPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "maxPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "startPlayerCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startPoolAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "stakeToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint40",
+              "name": "coinConversionRate",
+              "type": "uint40"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decayAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "initialLives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "cardsPerType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "exitLivesRequired",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostBasePercentBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostCompoundRateBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "creatorFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "platformFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "forfeitAllowed",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TournamentCore.ForfeitPenaltyType",
+              "name": "forfeitPenaltyType",
+              "type": "TournamentCore.ForfeitPenaltyType"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMaxPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMinPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "deckCatalog",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8[]",
+              "name": "excludedCardIds",
+              "type": "uint8[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckDrawCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckShuffleCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckPeekCost",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct TournamentCore.Params",
+          "name": "params",
+          "type": "tuple"
+        },
+        {
+          "internalType": "contract TournamentTokenWhitelist",
+          "name": "whitelist",
+          "type": "TournamentTokenWhitelist"
+        }
+      ],
+      "name": "validateEconomicParams",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "startTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "duration",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "gameInterval",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "minPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "maxPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "startPlayerCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startPoolAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "stakeToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint40",
+              "name": "coinConversionRate",
+              "type": "uint40"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decayAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "initialLives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "cardsPerType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "exitLivesRequired",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostBasePercentBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostCompoundRateBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "creatorFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "platformFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "forfeitAllowed",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TournamentCore.ForfeitPenaltyType",
+              "name": "forfeitPenaltyType",
+              "type": "TournamentCore.ForfeitPenaltyType"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMaxPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMinPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "deckCatalog",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8[]",
+              "name": "excludedCardIds",
+              "type": "uint8[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckDrawCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckShuffleCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckPeekCost",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct TournamentCore.Params",
+          "name": "params",
+          "type": "tuple"
+        },
+        {
+          "internalType": "contract TournamentTokenWhitelist",
+          "name": "whitelist",
+          "type": "TournamentTokenWhitelist"
+        }
+      ],
+      "name": "validateParams",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "startTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "duration",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "gameInterval",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "minPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "maxPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "startPlayerCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startPoolAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "stakeToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint40",
+              "name": "coinConversionRate",
+              "type": "uint40"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decayAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "initialLives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "cardsPerType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "exitLivesRequired",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostBasePercentBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostCompoundRateBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "creatorFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "platformFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "forfeitAllowed",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TournamentCore.ForfeitPenaltyType",
+              "name": "forfeitPenaltyType",
+              "type": "TournamentCore.ForfeitPenaltyType"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMaxPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMinPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "deckCatalog",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8[]",
+              "name": "excludedCardIds",
+              "type": "uint8[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckDrawCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckShuffleCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckPeekCost",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct TournamentCore.Params",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "validatePlayerParams",
+      "outputs": [],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "startTimestamp",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "duration",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "gameInterval",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint16",
+              "name": "minPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "maxPlayers",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "startPlayerCount",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint256",
+              "name": "startPoolAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "stakeToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxStake",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint40",
+              "name": "coinConversionRate",
+              "type": "uint40"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decayAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "initialLives",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "cardsPerType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "exitLivesRequired",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostBasePercentBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "exitCostCompoundRateBPS",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "creatorFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "platformFeePercent",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "forfeitAllowed",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TournamentCore.ForfeitPenaltyType",
+              "name": "forfeitPenaltyType",
+              "type": "TournamentCore.ForfeitPenaltyType"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMaxPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "forfeitMinPenalty",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "deckCatalog",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8[]",
+              "name": "excludedCardIds",
+              "type": "uint8[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckDrawCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckShuffleCost",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deckPeekCost",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct TournamentCore.Params",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateTimingParams",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080806040523460195761070a908161001e823930815050f35b5f80fdfe60806040526004361015610011575f80fd5b5f3560e01c806347c7f7e41461019c57806347e62f571461006a5780636c9a0ab2146100595763b09b9c1814610045575f80fd5b610057610051366101e2565b90610479565b005b610057610065366101ad565b610360565b610073366101e2565b61014082013564ffffffffff81168091036101985715610189576101608201351561017a5760ff6100a7610180840161032f565b161561016b5760ff6100bc6101c0840161032f565b161561015c5761ffff6100d26101e0840161033d565b161561014d576103208201351561013e576103408201351561013e576103608201351561013e576001600160a01b0361010e6102e0840161034c565b161561012f57816101216100579361023c565b61012a81610360565b610479565b63e6c4247b60e01b5f5260045ffd5b63f3c8bd5360e01b5f5260045ffd5b630d7bf1f360e21b5f5260045ffd5b630f09324160e01b5f5260045ffd5b63746bcf7760e11b5f5260045ffd5b6321d8571960e11b5f5260045ffd5b631b28e1c960e21b5f5260045ffd5b5f80fd5b6100576101a8366101ad565b61023c565b6020600319820112610198576004359067ffffffffffffffff8211610198576103809082900360031901126101985760040190565b6040600319820112610198576004359067ffffffffffffffff82116101985761038090829003600319011261019857600401906024356001600160a01b03811681036101985790565b3563ffffffff811681036101985790565b6102458161022b565b63ffffffff429116111561032057602081016104b063ffffffff6102688361022b565b1610610311576040820190603c63ffffffff6102838461022b565b1610610302576102a061029a63ffffffff9261022b565b9261022b565b1680156102df5763ffffffff8092160416600381106102f35780156102df57610160906fffffffffffffffffffffffffffffffff049101351161017a57565b634e487b7160e01b5f52601260045260245ffd5b630d1b246b60e21b5f5260045ffd5b63252847a560e11b5f5260045ffd5b6325c3636760e01b5f5260045ffd5b6307f5e89560e51b5f5260045ffd5b3560ff811681036101985790565b3561ffff811681036101985790565b356001600160a01b03811681036101985790565b60608101600261ffff6103728361033d565b161061046a57600261ffff6103868361033d565b16101580610447575b61042957608082019061ffff6103a48361033d565b166103e9575b50506101a001600160ff6103bd8361032f565b16106103da5760ff60036103d1829361032f565b0216116103da57565b638b680abd60e01b5f5260045ffd5b61ffff806103ff6103f98561033d565b9361033d565b169116106104385761ffff8061041a6103f960a0860161033d565b16911611610429575f806103aa565b631bff49f560e11b5f5260045ffd5b6304bd5da760e51b5f5260045ffd5b5061045460a0830161033d565b61ffff806104618461033d565b1691161061038f565b63a981109760e01b5f5260045ffd5b61010081013580151590816106c5575b816106b6575b506106a7576102208101600560ff6104a68361032f565b1611610698576104b59061032f565b60ff806104c5610240850161032f565b1691160160ff81116106845760ff600a9116116106755761026081013580151581036101985715610633576102c08101606460ff6105028361032f565b1611801561061a575b61060b576105189061032f565b60ff806105286102a0850161032f565b169116116105fc5761053f60e06020925b0161034c565b604051633af32abf60e01b81526001600160a01b0391821660048201529283916024918391165afa9081156105f1575f9161058c575b501561057d57565b6314ec381360e11b5f5260045ffd5b905060203d6020116105ea575b601f8101601f1916820167ffffffffffffffff8111838210176105d65760209183916040528101031261019857518015158103610198575f610575565b634e487b7160e01b5f52604160045260245ffd5b503d610599565b6040513d5f823e3d90fd5b6360c04a3f60e01b5f5260045ffd5b630fb9909d60e31b5f5260045ffd5b50606460ff61062c6102a0850161032f565b161161050b565b60ff6106426102c0830161032f565b161580159061065d575b61060b5761053f60e0602092610539565b5060ff61066d6102a0830161032f565b16151561064c565b6311aa234160e01b5f5260045ffd5b634e487b7160e01b5f52601160045260245ffd5b632a52987760e21b5f5260045ffd5b637000f74360e11b5f5260045ffd5b9050610120820135105f61048f565b6101208301351515915061048956fea2646970667358221220b7a64c782f0d9b68b982d362445086b2fd4e886f2d0f8bbf7d04be976b243adb64736f6c634300081c0033",
+  "deployedBytecode": "0x60806040526004361015610011575f80fd5b5f3560e01c806347c7f7e41461019c57806347e62f571461006a5780636c9a0ab2146100595763b09b9c1814610045575f80fd5b610057610051366101e2565b90610479565b005b610057610065366101ad565b610360565b610073366101e2565b61014082013564ffffffffff81168091036101985715610189576101608201351561017a5760ff6100a7610180840161032f565b161561016b5760ff6100bc6101c0840161032f565b161561015c5761ffff6100d26101e0840161033d565b161561014d576103208201351561013e576103408201351561013e576103608201351561013e576001600160a01b0361010e6102e0840161034c565b161561012f57816101216100579361023c565b61012a81610360565b610479565b63e6c4247b60e01b5f5260045ffd5b63f3c8bd5360e01b5f5260045ffd5b630d7bf1f360e21b5f5260045ffd5b630f09324160e01b5f5260045ffd5b63746bcf7760e11b5f5260045ffd5b6321d8571960e11b5f5260045ffd5b631b28e1c960e21b5f5260045ffd5b5f80fd5b6100576101a8366101ad565b61023c565b6020600319820112610198576004359067ffffffffffffffff8211610198576103809082900360031901126101985760040190565b6040600319820112610198576004359067ffffffffffffffff82116101985761038090829003600319011261019857600401906024356001600160a01b03811681036101985790565b3563ffffffff811681036101985790565b6102458161022b565b63ffffffff429116111561032057602081016104b063ffffffff6102688361022b565b1610610311576040820190603c63ffffffff6102838461022b565b1610610302576102a061029a63ffffffff9261022b565b9261022b565b1680156102df5763ffffffff8092160416600381106102f35780156102df57610160906fffffffffffffffffffffffffffffffff049101351161017a57565b634e487b7160e01b5f52601260045260245ffd5b630d1b246b60e21b5f5260045ffd5b63252847a560e11b5f5260045ffd5b6325c3636760e01b5f5260045ffd5b6307f5e89560e51b5f5260045ffd5b3560ff811681036101985790565b3561ffff811681036101985790565b356001600160a01b03811681036101985790565b60608101600261ffff6103728361033d565b161061046a57600261ffff6103868361033d565b16101580610447575b61042957608082019061ffff6103a48361033d565b166103e9575b50506101a001600160ff6103bd8361032f565b16106103da5760ff60036103d1829361032f565b0216116103da57565b638b680abd60e01b5f5260045ffd5b61ffff806103ff6103f98561033d565b9361033d565b169116106104385761ffff8061041a6103f960a0860161033d565b16911611610429575f806103aa565b631bff49f560e11b5f5260045ffd5b6304bd5da760e51b5f5260045ffd5b5061045460a0830161033d565b61ffff806104618461033d565b1691161061038f565b63a981109760e01b5f5260045ffd5b61010081013580151590816106c5575b816106b6575b506106a7576102208101600560ff6104a68361032f565b1611610698576104b59061032f565b60ff806104c5610240850161032f565b1691160160ff81116106845760ff600a9116116106755761026081013580151581036101985715610633576102c08101606460ff6105028361032f565b1611801561061a575b61060b576105189061032f565b60ff806105286102a0850161032f565b169116116105fc5761053f60e06020925b0161034c565b604051633af32abf60e01b81526001600160a01b0391821660048201529283916024918391165afa9081156105f1575f9161058c575b501561057d57565b6314ec381360e11b5f5260045ffd5b905060203d6020116105ea575b601f8101601f1916820167ffffffffffffffff8111838210176105d65760209183916040528101031261019857518015158103610198575f610575565b634e487b7160e01b5f52604160045260245ffd5b503d610599565b6040513d5f823e3d90fd5b6360c04a3f60e01b5f5260045ffd5b630fb9909d60e31b5f5260045ffd5b50606460ff61062c6102a0850161032f565b161161050b565b60ff6106426102c0830161032f565b161580159061065d575b61060b5761053f60e0602092610539565b5060ff61066d6102a0830161032f565b16151561064c565b6311aa234160e01b5f5260045ffd5b634e487b7160e01b5f52601160045260245ffd5b632a52987760e21b5f5260045ffd5b637000f74360e11b5f5260045ffd5b9050610120820135105f61048f565b6101208301351515915061048956fea2646970667358221220b7a64c782f0d9b68b982d362445086b2fd4e886f2d0f8bbf7d04be976b243adb64736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/tournament/infrastructure/factory/libraries/validation/FactoryValidation.sol",
+  "buildInfoId": "solc-0_8_28-049eca96dd0aeab7de6a84c18da93061b9036e92"
+}
