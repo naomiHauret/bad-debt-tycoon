@@ -2,7 +2,7 @@
 name: bad-debt-tycoon-indexer
 networks:
   - id: 421614
-    start_block: 208126783
+    start_block: 208322270
     contracts:
       - name: TournamentTokenWhitelist
         address:
